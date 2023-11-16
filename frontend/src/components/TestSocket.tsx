@@ -1,11 +1,7 @@
-import React, { useRef, useState } from 'react'
-// import { useParams } from 'react-router-dom';
-import { socket } from '../socket';
+import { useRef, useState } from "react";
+import { socket } from "../socket";
 import testVideo from "../assets/sample.mp4";
-
-const Party = () => {
-  // const { partyID } = useParams();
-
+const TestSocket = () => {
   const [chatValue, setChatValue] = useState("");
   const videoRef = useRef<HTMLVideoElement>(null);
   const playVideo = () => {
@@ -16,7 +12,6 @@ const Party = () => {
     videoRef.current?.play();
   });
 
-  
   return (
     <div>
       <video ref={videoRef} width="420" height="240" src={testVideo}></video>
@@ -26,6 +21,6 @@ const Party = () => {
       <div>{chatValue}</div>
     </div>
   );
-}
+};
 
-export default Party
+export default TestSocket;

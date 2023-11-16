@@ -6,7 +6,12 @@ import { createServer } from "node:http";
 const app = express();
 app.use(express.static('src'));
 const server = createServer(app);
-const io = new Server(server);
+const io = new Server(server,{
+  cors:{
+    origin:"http://localhost:5173",
+    methods:["GET","POST"],
+  }
+});
 
 
 app.get("/", (req, res) => {
@@ -23,6 +28,9 @@ io.on("connection", (socket) => {
   socket.on("disconnect", (msg) => {
     console.log("disconnected");
   });
+  socket.on("play",(msg)=>{
+      io.emit("play",msg);
+  })
 });
 
 server.listen(3000, () => {
