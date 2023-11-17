@@ -2,7 +2,7 @@ import "./App.css";
 import Home from "./components/Home";
 import { BrowserRouter, Routes, Route, useParams } from "react-router-dom";
 import Party from "./components/Party";
-import TestSocket from "./components/TESTSOCKET";
+import TestSocket from "./components/TestSocket";
 
 function App() {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

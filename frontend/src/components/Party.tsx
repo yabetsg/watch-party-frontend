@@ -2,14 +2,16 @@ import React, { useRef, useState } from 'react'
 // import { useParams } from 'react-router-dom';
 import { socket } from '../socket';
 import testVideo from "../assets/sample.mp4";
+import { useParams } from 'react-router-dom';
+
 
 const Party = () => {
-  // const { partyID } = useParams();
+  const { partyID } = useParams();
 
   const [chatValue, setChatValue] = useState("");
   const videoRef = useRef<HTMLVideoElement>(null);
   const playVideo = () => {
-    socket.emit("play", "play video");
+    socket.emit("play", partyID);
   };
   socket.on("play", (data) => {
     setChatValue(data);
@@ -19,7 +21,9 @@ const Party = () => {
   
   return (
     <div>
-      <video ref={videoRef} width="420" height="240" src={testVideo}></video>
+      <video ref={videoRef} width="200" height="140" src={testVideo}>
+      
+      </video>
       <button className="p-2 border" onClick={playVideo}>
         Play
       </button>
