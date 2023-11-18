@@ -8,7 +8,7 @@ function App() {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { partyID } = useParams();
 
-  
+  //TODO: add ui to party
   return (
     <BrowserRouter>
       <Routes>

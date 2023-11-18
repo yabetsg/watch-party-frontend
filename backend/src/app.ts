@@ -46,7 +46,6 @@ io.on("connection", (socket) => {
   })
   socket.on("play",(room)=>{
       io.to(room).emit("play");
-      
   })
   
 });
