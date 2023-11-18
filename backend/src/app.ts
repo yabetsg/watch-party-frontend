@@ -47,7 +47,13 @@ io.on("connection", (socket) => {
   socket.on("play",(room)=>{
       io.to(room).emit("play");
   })
-  
+
+  socket.on("search",({partyID,id})=>{
+      io.to(partyID).emit("search",id);
+    
+  })
+    
+    
 });
 
 server.listen(3000, () => {
