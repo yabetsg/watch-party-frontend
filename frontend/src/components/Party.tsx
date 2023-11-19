@@ -1,6 +1,7 @@
 import React, { useRef, useState } from "react";
 // import { useParams } from 'react-router-dom';
 import { IoSearch, IoSend } from "react-icons/io5";
+
 import { socket } from "../socket";
 // import testVideo from "../assets/sample.mp4";
 import { useParams } from "react-router-dom";
@@ -13,22 +14,32 @@ const Party = () => {
   const [youtubeID,setYoutubeID] = useState("");
   const [play, setPlay] = useState(false);
   const videoRef = useRef<HTMLIFrameElement>(null);
+  
+ 
   const playVideo = () => {
     socket.emit("play", partyID);
   };
 
-  // const playVideo = () => {
-  //   socket.emit("play", partyID);
-  // };
+  const pauseVideo = () => {
+    socket.emit("pause", partyID);
+  };
 
-  socket.on("play", (data) => {
-    setChatValue(data);
-    setPlay(true);
+  socket.on("play", () => {
+    videoRef.current?.contentWindow?.postMessage('{"event":"command","func":"' + 'playVideo' + '","args":""}', '*');
   });
 
+  socket.on("pause",()=>{
+      console.log("inside pause");
+      videoRef.current?.contentWindow?.postMessage(
+        '{"event":"command","func":"' + "pauseVideo" + '","args":""}',
+        "*"
+      );
+  })
+  
   socket.on("search",(id)=>{
     setYoutubeID(id);
-  })
+  });
+
   const parseYoutubeURL = (url:string) => {
     const regExp =
       /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
@@ -73,18 +84,27 @@ const Party = () => {
             height="480"
             src={testVideo}
           ></video> */}
-
+          {/* <YouTube
+          videoId={youtubeID}
+          opts={{
+            height: '390',
+            width: '640',
+          }}
+          onReady={handleReady}
+          /> */}
+          {/* ${play?"?autoplay=1":"?autoplay=0"} */}
           <iframe
             ref={videoRef}
             width="854"
             height="480"
-            src={`https://www.youtube.com/embed/${youtubeID}${play?"?autoplay=1":"?autoplay=0"}`}
+            src={`https://www.youtube.com/embed/${youtubeID}?enablejsapi=1&version=3&playerapiid=ytplayer`}
+            
           ></iframe>
           <div>
             <button className="p-2 border" onClick={playVideo}>
               Play
             </button>
-            <button className="p-2 border">Pause</button>
+            <button className="p-2 border" onClick={pauseVideo}>Pause</button>
           </div>
         </section>
 
