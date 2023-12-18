@@ -14,6 +14,8 @@ const io = new Server(server, {
     origin: ["http://localhost:5173", "http://10.222.245.188:5173"],
     methods: ["GET", "POST"],
   },
+
+  connectionStateRecovery: {},
 });
 const MONGODB_URL = String(process.env.MONGO_URL);
 
@@ -26,6 +28,7 @@ async function main() {
 app.get("/", (req, res) => {
   res.sendFile(join(__dirname, "index.html"));
 });
+let hostSocketID: string | null = null;
 io.on("connection", (socket) => {
   console.log("a user connected");
 
@@ -38,11 +41,14 @@ io.on("connection", (socket) => {
   });
   socket.on("join", (roomID) => {
     socket.join(roomID);
+    if (!hostSocketID) {
+      hostSocketID = socket.id;
+    }
     console.log("Joined room" + roomID);
   });
   socket.on("play", (room) => {
     console.log("play");
-    
+
     io.to(room).emit("play");
   });
 
@@ -54,6 +60,11 @@ io.on("connection", (socket) => {
 
   socket.on("search", ({ partyID, id }) => {
     io.to(partyID).emit("search", id);
+  });
+  socket.on("duration", ({ partyID, seconds }) => {
+    if (socket.id === hostSocketID) {
+      io.to(partyID).emit("duration", seconds);
+    }
   });
 });
 

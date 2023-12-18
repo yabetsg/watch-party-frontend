@@ -1,21 +1,18 @@
-import React, { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 // import { useParams } from 'react-router-dom';
 import { IoSearch, IoSend } from "react-icons/io5";
-
+import YouTube from "react-youtube";
 import { socket } from "../socket";
 // import testVideo from "../assets/sample.mp4";
 import { useParams } from "react-router-dom";
 
 const Party = () => {
   const { partyID } = useParams();
-
   const [chatValue, setChatValue] = useState("");
   const [searchInput, setSearchInput] = useState("");
-  const [youtubeID,setYoutubeID] = useState("");
-  const [play, setPlay] = useState(false);
-  const videoRef = useRef<HTMLIFrameElement>(null);
-  
- 
+  const [youtubeID, setYoutubeID] = useState("Kwlf3b98GDs");
+  const videoRef = useRef<YouTube>(null);
+
   const playVideo = () => {
     socket.emit("play", partyID);
   };
@@ -23,35 +20,68 @@ const Party = () => {
   const pauseVideo = () => {
     socket.emit("pause", partyID);
   };
+  const getDuration = async()=>{
+    const rawSeconds =
+        await videoRef?.current?.internalPlayer.getCurrentTime();
+      const seconds = Math.floor(rawSeconds);
+      return seconds;
+  }
+  useEffect(() => {
+    socket.on("duration", async(seconds) => {
+      const clientSeconds =  await getDuration()
+      if(Math.abs(seconds-clientSeconds)>5){
+        videoRef?.current?.internalPlayer.seekTo(seconds)
+      }
+    });
+
+    socket.on("search", (id) => {
+      console.log("id");
+      setYoutubeID(id);
+    });
+  }, []);
 
   socket.on("play", () => {
-    videoRef.current?.contentWindow?.postMessage('{"event":"command","func":"' + 'playVideo' + '","args":""}', '*');
+    videoRef?.current?.internalPlayer.playVideo();
   });
 
-  socket.on("pause",()=>{
-      console.log("inside pause");
-      videoRef.current?.contentWindow?.postMessage(
-        '{"event":"command","func":"' + "pauseVideo" + '","args":""}',
-        "*"
-      );
-  })
-  
-  socket.on("search",(id)=>{
-    setYoutubeID(id);
+  socket.on("pause", () => {
+    videoRef?.current?.internalPlayer.pauseVideo();
   });
 
-  const parseYoutubeURL = (url:string) => {
+  const parseYoutubeURL = (url: string) => {
     const regExp =
       /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
     const match = url.match(regExp);
     const youtubeID = match && match[7].length == 11 ? match[7] : "";
     return youtubeID;
   };
-  const handleSearch = ()=>{
-      const id = parseYoutubeURL(searchInput);
-      socket.emit("search", {partyID,id});
-      setSearchInput("");
-  }
+  const handleSearch = () => {
+    const id = parseYoutubeURL(searchInput);
+
+    socket.emit("search", { partyID, id });
+    setSearchInput("");
+  };
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+
+    const updateDuration = async () => {
+      const rawSeconds =
+        await videoRef?.current?.internalPlayer.getCurrentTime();
+      const seconds = Math.floor(rawSeconds);
+      socket.emit("duration", { partyID, seconds });
+    };
+
+    if (youtubeID) {
+      timer = setInterval(updateDuration, 2000);
+    }
+
+    return () => {
+      clearInterval(timer);
+    };
+  }, [youtubeID, partyID, videoRef]);
+
+
   return (
     <main className="bg-[#272526] text-white h-screen flex flex-col">
       <div className="">
@@ -62,7 +92,7 @@ const Party = () => {
               className="flex-1 p-2 text-sm bg-transparent outline-none cursor-auto"
               placeholder="Youtube URL"
               value={searchInput}
-              onChange={(e)=>setSearchInput(e.target.value)}
+              onChange={(e) => setSearchInput(e.target.value)}
             />
             <button onClick={handleSearch}>
               <IoSearch size={25} />
@@ -71,40 +101,28 @@ const Party = () => {
 
           <div className="flex gap-10">
             <div className="flex items-center">John Doe</div>
-          <button>Log out</button>
+            <button>Log out</button>
           </div>
-          
         </nav>
       </div>
       <div className="flex">
         <section className="m-2 border rounded-lg w-fit">
-          {/* <video
+          <YouTube
+            videoId={youtubeID}
+            opts={{
+              width: "854",
+              height: "480",
+            }}
             ref={videoRef}
-            width="854"
-            height="480"
-            src={testVideo}
-          ></video> */}
-          {/* <YouTube
-          videoId={youtubeID}
-          opts={{
-            height: '390',
-            width: '640',
-          }}
-          onReady={handleReady}
-          /> */}
-          {/* ${play?"?autoplay=1":"?autoplay=0"} */}
-          <iframe
-            ref={videoRef}
-            width="854"
-            height="480"
-            src={`https://www.youtube.com/embed/${youtubeID}?enablejsapi=1&version=3&playerapiid=ytplayer`}
-            
-          ></iframe>
+          />
+
           <div>
             <button className="p-2 border" onClick={playVideo}>
               Play
             </button>
-            <button className="p-2 border" onClick={pauseVideo}>Pause</button>
+            <button className="p-2 border" onClick={pauseVideo}>
+              Pause
+            </button>
           </div>
         </section>
 
