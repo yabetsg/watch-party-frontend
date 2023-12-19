@@ -47,15 +47,15 @@ io.on("connection", (socket) => {
     console.log("Joined room" + roomID);
   });
   socket.on("play", (room) => {
-    console.log("play");
-
-    io.to(room).emit("play");
+    if (socket.id === hostSocketID) {
+      io.to(room).emit("play");
+    }
   });
 
   socket.on("pause", (room) => {
-    console.log("pause");
-
-    io.to(room).emit("pause");
+    if (socket.id === hostSocketID) {
+      io.to(room).emit("pause");
+    }
   });
 
   socket.on("search", ({ partyID, id }) => {
