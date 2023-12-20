@@ -11,7 +11,7 @@ const Party = () => {
   const { partyID } = useParams();
   const [chatValue, setChatValue] = useState("");
   const [searchInput, setSearchInput] = useState("");
-  const [youtubeID, setYoutubeID] = useState("Kwlf3b98GDs");
+  const [youtubeID, setYoutubeID] = useState("q4JSweF_aGo");
   const [videoStatus, setVideoStatus] = useState<Status>(Status.Paused);
   const videoRef = useRef<YouTube>(null);
 
