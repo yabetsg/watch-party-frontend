@@ -1,11 +1,11 @@
 import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-import cors from "cors"
+import cors from "cors";
 import { join } from "node:path";
 import { Server } from "socket.io";
 import { createServer } from "node:http";
-import { createUser } from "../populateDB";
+import partyRouter from "./routes/party";
 import userRouter from "./routes/users";
 import { authorize } from "./middleware/authorize";
 
@@ -13,12 +13,12 @@ dotenv.config();
 const app = express();
 app.use(express.static("src"));
 app.use(express.json());
-const corsOptions ={
-  origin:'*', 
-  credentials:true,           
-  optionSuccessStatus:200,
-}
-app.use(cors(corsOptions))
+const corsOptions = {
+  origin: "*",
+  credentials: true,
+  optionSuccessStatus: 200,
+};
+app.use(cors(corsOptions));
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
@@ -39,18 +39,17 @@ async function main() {
 app.get("/", (req, res) => {
   res.sendFile(join(__dirname, "index.html"));
 });
-app.use("/users",userRouter)
-app.post("/",authorize)
+app.use("/users", userRouter);
+app.use("/party", partyRouter);
+app.post("/", authorize);
 
 let hostSocketID: string | null = null;
 io.on("connection", (socket) => {
   console.log("a user connected");
 
-
-  socket.on("reconnect",()=>{
+  socket.on("reconnect", () => {
     console.log("reconnecting");
-    
-  })
+  });
   socket.on("chat message", (msg) => {
     io.emit("chat message", msg);
     console.log("message: " + msg);

@@ -1,20 +1,22 @@
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 
 import { IoSearch, IoSend } from "react-icons/io5";
 import YouTube, { YouTubeEvent } from "react-youtube";
 import { socket } from "../socket";
 import { Status } from "../types";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { UserContext } from "../contexts/UserProvider";
+import { handleLogout } from "../shared";
 
 const Party = () => {
-
   const { partyID } = useParams();
   const [chatValue, setChatValue] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [youtubeID, setYoutubeID] = useState("q4JSweF_aGo");
   const [videoStatus, setVideoStatus] = useState<Status>(Status.Paused);
   const videoRef = useRef<YouTube>(null);
-
+  const user = useContext(UserContext);
+  const navigate = useNavigate();
   const playVideo = () => {
     socket.emit("play", partyID);
   };
@@ -111,10 +113,14 @@ const Party = () => {
             </button>
           </div>
 
-          <div className="flex gap-10">
-            <div className="flex items-center">John Doe</div>
-            <button>Log out</button>
-          </div>
+          {user ? (
+            <>
+              <div>{user}</div>
+              <button onClick={handleLogout}>Log out</button>
+            </>
+          ) : (
+            <button onClick={() => navigate("/login")}>Login</button>
+          )}
         </nav>
       </div>
       <div className="flex">
@@ -128,15 +134,6 @@ const Party = () => {
             onStateChange={handleStateChange}
             ref={videoRef}
           />
-
-          {/* <div>
-            <button className="p-2 border" onClick={playVideo}>
-              Play
-            </button>
-            <button className="p-2 border" onClick={pauseVideo}>
-              Pause
-            </button>
-          </div> */}
         </section>
 
         <section className="flex-1">

@@ -1,12 +1,13 @@
 import { FormEvent, useState } from "react";
 import { Login } from "../types";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
   const [body, setBody] = useState<Login>({
     username: "",
     password: "",
   });
-
+  const navigate = useNavigate()
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
     const response = await fetch("http://localhost:3000/users/login", {
@@ -19,6 +20,7 @@ const Login = () => {
     if(response.ok){
       const data = await response.json()
       localStorage.setItem("token",data.token)
+      navigate("/")
     }else{
       console.log("Error:"+ response.status + " "+ response.statusText)
     }

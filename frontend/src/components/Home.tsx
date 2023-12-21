@@ -1,42 +1,32 @@
 import generatePartyID from "../utils/randomID";
 import JoinPartyModal from "./JoinPartyModal";
-import { useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import { socket } from "../socket";
 import { useNavigate } from "react-router-dom";
+import { UserContext } from "../contexts/UserProvider";
+import { handleLogout } from "../shared";
 const Home = () => {
   const [displayJoinModal, setDisplayJoinModal] = useState(false);
-  const [user, setUser] = useState("");
+  //TODO: nav not updated unless refreshed
+  const user = useContext(UserContext);
   const navigate = useNavigate();
-  const handleCreate = () => {
+  const handleCreate = async () => {
     const id = generatePartyID();
+    const token = localStorage.getItem("token");
     socket.emit("join", id);
     navigate("/party/" + id);
+    const response = await fetch(`http://localhost:3000/party/${id}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    console.log("Stat: " + response.status);
+    const r = await response.json();
+    console.log("r: " + r);
   };
-  const getUser = async () => {
-    const token = localStorage.getItem("token");
-    if (token !== "undefined" && token !== null) {
-      const response = await fetch("http://localhost:3000", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (response.ok) {
-        const { data } = await response.json();
-        setUser(data.user.username);
-      } else {
-        console.log("ERROR: " + response.statusText);
-      }
-    }
-  };
-  const handleLogout = ()=>{
-    localStorage.removeItem("token")
-    location.reload()
-  }
-  useEffect(() => {
-    getUser();
-  }, []);
+
   return (
     <main className="bg-[#272526] text-white h-screen flex flex-col">
       <nav className="flex justify-end gap-6 p-6 text-2xl border-b">
