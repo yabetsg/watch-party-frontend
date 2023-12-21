@@ -5,7 +5,7 @@ import YouTube, { YouTubeEvent } from "react-youtube";
 import { socket } from "../socket";
 import { Status } from "../types";
 import { useNavigate, useParams } from "react-router-dom";
-import { UserContext } from "../contexts/UserProvider";
+import { UserContext } from "../providers/UserProvider";
 import { handleLogout } from "../shared";
 
 const Party = () => {
@@ -15,7 +15,7 @@ const Party = () => {
   const [youtubeID, setYoutubeID] = useState("q4JSweF_aGo");
   const [videoStatus, setVideoStatus] = useState<Status>(Status.Paused);
   const videoRef = useRef<YouTube>(null);
-  const user = useContext(UserContext);
+  const {user} = useContext(UserContext);
   const navigate = useNavigate();
   const playVideo = () => {
     socket.emit("play", partyID);

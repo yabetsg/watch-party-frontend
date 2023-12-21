@@ -1,11 +1,11 @@
 import "./App.css";
 import Home from "./components/Home";
-import { BrowserRouter, Routes, Route, useParams } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Party from "./components/Party";
 import TestSocket from "./components/TestSocket";
 import Login from "./components/Login";
 import Signup from "./components/Signup";
-import UserProvider from "./contexts/UserProvider";
+import UserProvider from "./providers/UserProvider";
 function App() {
   return (
     <BrowserRouter>

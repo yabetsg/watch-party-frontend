@@ -1,8 +1,21 @@
-import { ReactNode, createContext, useEffect, useState } from "react";
+import {
+  Dispatch,
+  ReactNode,
+  SetStateAction,
+  createContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+interface User {
+  user: string;
+  setUser: Dispatch<SetStateAction<string>>;
+}
+export const UserContext = createContext<User>({ user: "", setUser: () => {} });
 
-export const UserContext = createContext("");
 const UserProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState("");
+
   const getUser = async () => {
     const token = localStorage.getItem("token");
     if (token !== "undefined" && token !== null) {
@@ -22,11 +35,25 @@ const UserProvider = ({ children }: { children: ReactNode }) => {
     }
   };
   useEffect(() => {
-    getUser();
-  }, []);
+    console.log("hi");
 
+    getUser();
+  }, [user]);
+  const userState = useMemo(() => {
+    return {
+      user,
+      setUser,
+    };
+  }, [user]);
   return (
-    <UserContext.Provider value={ user }>{children}</UserContext.Provider>
+    <UserContext.Provider
+      value={{
+        user,
+        setUser,
+      }}
+    >
+      {children}
+    </UserContext.Provider>
   );
 };
 

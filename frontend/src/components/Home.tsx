@@ -3,12 +3,11 @@ import JoinPartyModal from "./JoinPartyModal";
 import { useContext, useState } from "react";
 import { socket } from "../socket";
 import { useNavigate } from "react-router-dom";
-import { UserContext } from "../contexts/UserProvider";
+import { UserContext } from "../providers/UserProvider";
 import { handleLogout } from "../shared";
 const Home = () => {
   const [displayJoinModal, setDisplayJoinModal] = useState(false);
-  //TODO: nav not updated unless refreshed
-  const user = useContext(UserContext);
+  const {user} = useContext(UserContext);
   const navigate = useNavigate();
   const handleCreate = async () => {
     const id = generatePartyID();
