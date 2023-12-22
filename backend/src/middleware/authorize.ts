@@ -1,9 +1,6 @@
 import Jwt from "jsonwebtoken";
-import { Request, Response, NextFunction } from "express";
-
-interface CustomRequest extends Request {
-  token?: string;
-}
+import { Response, NextFunction } from "express";
+import { CustomRequest } from "../types";
 
 export const authorize = async (
   req: CustomRequest,
@@ -19,12 +16,10 @@ export const authorize = async (
       if (err) {
         res.sendStatus(401);
       } else {
-        res.json({
-          data,
-        });
+        req.user = data;
+        next();
       }
     });
-    next();
   } else {
     res.sendStatus(403);
   }

@@ -19,24 +19,25 @@ const UserProvider = ({ children }: { children: ReactNode }) => {
   const getUser = async () => {
     const token = localStorage.getItem("token");
     if (token !== "undefined" && token !== null) {
-      const response = await fetch("http://localhost:3000", {
+      const response = await fetch("http://localhost:3000/auth", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
       });
+
       if (response.ok) {
-        const { data } = await response.json();
-        setUser(data.user.username);
+        const { user } = await response.json();
+        setUser(user);
       } else {
         console.log("ERROR: " + response.statusText);
       }
     }
   };
   useEffect(() => {
-    console.log("hi");
-
+    console.log("rendering");
+    
     getUser();
   }, [user]);
   const userState = useMemo(() => {
@@ -46,14 +47,7 @@ const UserProvider = ({ children }: { children: ReactNode }) => {
     };
   }, [user]);
   return (
-    <UserContext.Provider
-      value={{
-        user,
-        setUser,
-      }}
-    >
-      {children}
-    </UserContext.Provider>
+    <UserContext.Provider value={userState}>{children}</UserContext.Provider>
   );
 };
 

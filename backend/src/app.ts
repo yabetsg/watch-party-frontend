@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Response } from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cors from "cors";
@@ -8,7 +8,8 @@ import { createServer } from "node:http";
 import partyRouter from "./routes/party";
 import userRouter from "./routes/users";
 import { authorize } from "./middleware/authorize";
-
+import { CustomRequest } from "./types";
+import authRouter from "./routes/auth";
 dotenv.config();
 const app = express();
 app.use(express.static("src"));
@@ -41,7 +42,7 @@ app.get("/", (req, res) => {
 });
 app.use("/users", userRouter);
 app.use("/party", partyRouter);
-app.post("/", authorize);
+app.use("/auth", authRouter);
 
 let hostSocketID: string | null = null;
 io.on("connection", (socket) => {
