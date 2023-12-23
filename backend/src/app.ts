@@ -10,12 +10,14 @@ import userRouter from "./routes/users";
 import { authorize } from "./middleware/authorize";
 import { CustomRequest } from "./types";
 import authRouter from "./routes/auth";
+import cookieParser from "cookie-parser"
 dotenv.config();
 const app = express();
 app.use(express.static("src"));
 app.use(express.json());
+app.use(cookieParser());
 const corsOptions = {
-  origin: "*",
+  origin: "http://localhost:5173",
   credentials: true,
   optionSuccessStatus: 200,
 };
@@ -34,7 +36,6 @@ const MONGODB_URL = String(process.env.MONGO_URL);
 main().catch((err) => console.log(err));
 async function main() {
   await mongoose.connect(MONGODB_URL);
-  // await createUser();
 }
 
 app.get("/", (req, res) => {
@@ -63,7 +64,7 @@ io.on("connection", (socket) => {
     if (!hostSocketID) {
       hostSocketID = socket.id;
     }
-    console.log("Joined room" + roomID);
+    console.log(`User joined room ${roomID}`);
   });
   socket.on("play", (room) => {
     if (socket.id === hostSocketID) {

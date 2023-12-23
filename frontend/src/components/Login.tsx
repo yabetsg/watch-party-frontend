@@ -9,8 +9,8 @@ const Login = () => {
     password: "",
   });
 
-  const {setUser} = useContext(UserContext)
-  const navigate = useNavigate()
+  const { setUser } = useContext(UserContext);
+  const navigate = useNavigate();
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
     const response = await fetch("http://localhost:3000/users/login", {
@@ -19,14 +19,15 @@ const Login = () => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(body),
-    })
-    if(response.ok){
-      const data = await response.json()
-      localStorage.setItem("token",data.token)      
+    });
+    if (response.ok) {
+      const data = await response.json();
+      localStorage.setItem("token", data.token);
+
       setUser(data.user);
-      navigate("/")
-    }else{
-      console.log("Error:"+ response.status + " "+ response.statusText)
+      navigate("/");
+    } else {
+      console.log("Error:" + response.status + " " + response.statusText);
     }
   };
   return (

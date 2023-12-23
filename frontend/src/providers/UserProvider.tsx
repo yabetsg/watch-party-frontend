@@ -29,15 +29,15 @@ const UserProvider = ({ children }: { children: ReactNode }) => {
 
       if (response.ok) {
         const { user } = await response.json();
-        setUser(user);
+        setUser(user.username);
       } else {
         console.log("ERROR: " + response.statusText);
       }
     }
   };
   useEffect(() => {
-    console.log("rendering");
-    
+    console.log("USER PROVIDER");
+
     getUser();
   }, [user]);
   const userState = useMemo(() => {

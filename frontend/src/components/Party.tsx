@@ -12,10 +12,10 @@ const Party = () => {
   const { partyID } = useParams();
   const [chatValue, setChatValue] = useState("");
   const [searchInput, setSearchInput] = useState("");
-  const [youtubeID, setYoutubeID] = useState("q4JSweF_aGo");
+  const [youtubeID, setYoutubeID] = useState("");
   const [videoStatus, setVideoStatus] = useState<Status>(Status.Paused);
   const videoRef = useRef<YouTube>(null);
-  const {user} = useContext(UserContext);
+  const { user } = useContext(UserContext);
   const navigate = useNavigate();
   const playVideo = () => {
     socket.emit("play", partyID);
@@ -24,10 +24,29 @@ const Party = () => {
   const pauseVideo = () => {
     socket.emit("pause", partyID);
   };
+
   const getDuration = async () => {
     const rawSeconds = await videoRef?.current?.internalPlayer.getCurrentTime();
     const seconds = Math.floor(rawSeconds);
     return seconds;
+  };
+
+  // initialized party to previous state if disconnected / refresh
+  const initializeParty = async () => {
+    const token = localStorage.getItem("token");
+    const response = await fetch("http://localhost:3000/party", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      credentials: "include",
+    });
+    if (response.ok) {
+      const { data } = await response.json();
+      socket.emit("join", data.partyID);
+      setYoutubeID(data.videoID ? data.videoID : "");
+    }
   };
 
   useEffect(() => {
@@ -39,8 +58,11 @@ const Party = () => {
     });
 
     socket.on("search", (id) => {
+      console.log(id);
       setYoutubeID(id);
     });
+
+    initializeParty();
   }, []);
 
   socket.on("play", () => {
@@ -64,6 +86,7 @@ const Party = () => {
     const id = parseYoutubeURL(searchInput);
     socket.emit("search", { partyID, id });
     setSearchInput("");
+    
   };
   const handleStateChange = (event: YouTubeEvent) => {
     //0-ended, 1 - playing, 2- paused

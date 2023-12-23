@@ -66,11 +66,11 @@ export const login_user = async (req: Request, res: Response) => {
       const encryptedPass = user.password;
       const isValid = await bycrypt.compare(password, encryptedPass);
       if (isValid) {
-        Jwt.sign({ user: user.username }, process.env.SECRET_KEY as string, (err:{}|null, token:string | undefined) => {
+        Jwt.sign({ user }, process.env.SECRET_KEY as string, (err:{}|null, token:string | undefined) => {
             return res.status(200).json({
               message: "Authentication successful",
               status: "success",
-              token: token,
+              token,
               user:user.username
             });
           });

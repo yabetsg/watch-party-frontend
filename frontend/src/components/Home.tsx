@@ -23,11 +23,10 @@ const Home = () => {
         Authorization: `Bearer ${token}`,
       },
     });
-    if(response.ok){
-      const data = await response.json()
-      console.log(data)
+    if (response.ok) {
+      const data = await response.json();
+      console.log(data);
     }
-
   };
 
   const checkAuth = async () => {
