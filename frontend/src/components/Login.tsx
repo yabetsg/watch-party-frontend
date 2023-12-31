@@ -1,7 +1,7 @@
-import { FormEvent, useContext, useState } from "react";
+import { FormEvent, useState } from "react";
 import { Login } from "../types";
 import { useNavigate } from "react-router-dom";
-import { UserContext } from "../providers/UserProvider";
+
 
 const Login = () => {
   const [body, setBody] = useState<Login>({
@@ -9,7 +9,8 @@ const Login = () => {
     password: "",
   });
 
-  const { setUser } = useContext(UserContext);
+
+  // const { setUser } =  useUserData()
   const navigate = useNavigate();
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
@@ -24,7 +25,7 @@ const Login = () => {
       const data = await response.json();
       localStorage.setItem("token", data.token);
 
-      setUser(data.user);
+      // setUser(data.user);
       navigate("/");
     } else {
       console.log("Error:" + response.status + " " + response.statusText);

@@ -1,25 +1,32 @@
 import { FormEvent, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { socket } from "../socket";
+
+import useUserData from "../hooks/useUserData";
 const JoinPartyModal = () => {
   const [partyID, setPartyID] = useState("");
   const navigate = useNavigate();
   const partyRef = useRef<HTMLInputElement>(null);
+  const { getUser } = useUserData()
   const joinParty = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const token = localStorage.getItem("token");
     //
     const response = await fetch(`http://localhost:3000/party/${partyID}`, {
-      method: "PUT",
+      method: "PATCH",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
+      body:JSON.stringify({
+        join:true
+      }),
       credentials: "include",
     });
     if (response.ok) {
       navigate(`/party/${partyID}`);
-      socket.emit("join", partyRef.current?.value);
+      const user = await getUser()
+      socket.emit("join", { partyID, user });
       localStorage.setItem("curr_party", partyID);
     }
   };

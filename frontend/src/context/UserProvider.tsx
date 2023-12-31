@@ -1,21 +1,10 @@
-import {
-  Dispatch,
-  ReactNode,
-  SetStateAction,
-  createContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { ReactNode, createContext } from "react";
 interface User {
-  user: string;
-  setUser: Dispatch<SetStateAction<string>>;
+  getUser: () => Promise<string>;
 }
-export const UserContext = createContext<User>({ user: "", setUser: () => {} });
+export const UserContext = createContext<User>({ getUser: () => Promise.resolve("") });
 
 const UserProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState("");
-
   const getUser = async () => {
     const token = localStorage.getItem("token");
     if (token !== "undefined" && token !== null) {
@@ -29,23 +18,16 @@ const UserProvider = ({ children }: { children: ReactNode }) => {
 
       if (response.ok) {
         const { user } = await response.json();
-        setUser(user.username);
+        return user.username;
       } else {
-        console.log("ERROR: " + response.statusText);
+        return response.statusText;
       }
     }
   };
-  useEffect(() => {
-    console.log("USER PROVIDER");
 
-    getUser();
-  }, [user]);
-  const userState = useMemo(() => {
-    return {
-      user,
-      setUser,
-    };
-  }, [user]);
+  const userState = {
+    getUser,
+  };
   return (
     <UserContext.Provider value={userState}>{children}</UserContext.Provider>
   );

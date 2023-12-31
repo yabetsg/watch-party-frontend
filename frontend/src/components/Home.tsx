@@ -1,14 +1,17 @@
 import generatePartyID from "../utils/randomID";
 import JoinPartyModal from "./JoinPartyModal";
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { socket } from "../socket";
 import { useNavigate } from "react-router-dom";
-import { UserContext } from "../providers/UserProvider";
+
 import { handleLogout } from "../shared";
+import useUserData from "../hooks/useUserData";
 const Home = () => {
   const [displayJoinModal, setDisplayJoinModal] = useState(false);
   const [loading, setLoading] = useState(true);
-  const { user } = useContext(UserContext);
+  const [username,setUsername] = useState("");
+  // const { user } = useContext(UserContext);
+  const { getUser } = useUserData();
   const navigate = useNavigate();
 
   const handleCreate = async () => {
@@ -34,15 +37,10 @@ const Home = () => {
     if (token === "undefined" || token === null) {
       navigate("/login");
     } else {
-      const response = await fetch("http://localhost:3000/auth", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (response.ok) {
+      const user = await getUser();
+      if (user) {
         setLoading(false);
+        setUsername(user)
       } else {
         navigate("/login");
       }
@@ -56,9 +54,9 @@ const Home = () => {
   return (
     <main className="bg-[#272526] text-white h-screen flex flex-col">
       <nav className="flex justify-end gap-6 p-6 text-2xl border-b">
-        {user ? (
+        {username ? (
           <>
-            <div>{user}</div>
+            <div>{username}</div>
             <button onClick={handleLogout}>Log out</button>
           </>
         ) : (

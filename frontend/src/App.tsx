@@ -4,7 +4,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Party from "./components/Party";
 import Login from "./components/Login";
 import Signup from "./components/Signup";
-import UserProvider from "./providers/UserProvider";
+import UserProvider from "./context/UserProvider";
 function App() {
   return (
     <BrowserRouter>

@@ -1,12 +1,14 @@
-import { useContext, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-import { IoSearch, IoSend } from "react-icons/io5";
-import YouTube, { YouTubeEvent } from "react-youtube";
+import { IoExitOutline, IoSearch, IoSend } from "react-icons/io5";
+import ReactPlayer from "react-player";
 import { socket } from "../socket";
 import { Status } from "../types";
 import { useNavigate, useParams } from "react-router-dom";
-import { UserContext } from "../providers/UserProvider";
+
 import { handleLogout } from "../shared";
+
+import useUserData from "../hooks/useUserData";
 
 const Party = () => {
   const { partyID } = useParams();
@@ -14,27 +16,15 @@ const Party = () => {
   const [searchInput, setSearchInput] = useState("");
   const [youtubeID, setYoutubeID] = useState("");
   const [videoStatus, setVideoStatus] = useState<Status>(Status.Paused);
-  const videoRef = useRef<YouTube>(null);
-  const { user } = useContext(UserContext);
+  const videoRef = useRef<ReactPlayer>(null);
+  const [user, setUser] = useState<string>("");
+  const { getUser } = useUserData();
   const navigate = useNavigate();
-  const playVideo = () => {
-    socket.emit("play", partyID);
-  };
 
-  const pauseVideo = () => {
-    socket.emit("pause", partyID);
-  };
-
-  const getDuration = async () => {
-    const rawSeconds = await videoRef?.current?.internalPlayer.getCurrentTime();
-    const seconds = Math.floor(rawSeconds);
-    return seconds;
-  };
-
-  // initialized party to previous state if disconnected / refresh
   const initializeParty = async () => {
     const token = localStorage.getItem("token");
-    const response = await fetch("http://localhost:3000/party", {
+
+    const response = await fetch(`http://localhost:3000/party/${partyID}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -42,73 +32,123 @@ const Party = () => {
       },
       credentials: "include",
     });
+
     if (response.ok) {
       const { data } = await response.json();
-      socket.emit("join", data.partyID);
+
+      const user = await getUser();
+      setUser(user);
+      socket.emit("join", { partyID, user });
       setYoutubeID(data.videoID ? data.videoID : "");
     }
   };
 
   useEffect(() => {
+    socket.on("search", (youtubeID: string) => {
+      setYoutubeID(youtubeID);
+      updateVideo(youtubeID);
+    });
+
+    socket.on("play", () => {
+      console.log("onPlay");
+      setVideoStatus(Status.Playing);
+      videoRef.current?.getInternalPlayer().playVideo();
+    });
+
+    socket.on("pause", () => {
+      console.log("onPause");
+      setVideoStatus(Status.Paused);
+      videoRef.current?.getInternalPlayer().pauseVideo();
+    });
+
     socket.on("duration", async (seconds) => {
-      const clientSeconds = await getDuration();
+      const clientSeconds = videoRef?.current?.getCurrentTime() || 0;
       if (Math.abs(seconds - clientSeconds) > 3) {
-        videoRef?.current?.internalPlayer.seekTo(seconds);
+        videoRef?.current?.seekTo(seconds);
+        videoRef.current?.getInternalPlayer().playVideo();
       }
     });
-
-    socket.on("search", (id) => {
-      console.log(id);
-      setYoutubeID(id);
+    socket.on("switch_host", async () => {
+      const [users] = await getParticipants();
+      socket.emit("assign_host", users.username);
     });
-
     initializeParty();
   }, []);
 
-  socket.on("play", () => {
-    setVideoStatus(Status.Playing);
-    videoRef?.current?.internalPlayer.playVideo();
-  });
-
-  socket.on("pause", () => {
-    setVideoStatus(Status.Paused);
-    videoRef?.current?.internalPlayer.pauseVideo();
-  });
-
-  const parseYoutubeURL = (url: string) => {
-    const regExp =
-      /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
-    const match = url.match(regExp);
-    const youtubeID = match && match[7].length == 11 ? match[7] : "";
-    return youtubeID;
+  const updateVideo = async (youtubeID: string) => {
+    const token = localStorage.getItem("token");
+    const response = await fetch(`http://localhost:3000/party/${partyID}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      credentials: "include",
+      body: JSON.stringify({ youtubeID }),
+    });
+    if (response.ok) {
+      const data = await response.json();
+      console.log("Party updated with youtube id: " + JSON.stringify(data));
+    }
   };
+
   const handleSearch = () => {
-    const id = parseYoutubeURL(searchInput);
-    socket.emit("search", { partyID, id });
+    socket.emit("search", { partyID, youtubeID: searchInput });
+    console.log(searchInput);
+
     setSearchInput("");
-    
   };
-  const handleStateChange = (event: YouTubeEvent) => {
-    //0-ended, 1 - playing, 2- paused
-    switch (event.data) {
-      case Status.Playing:
-        playVideo();
-        break;
-      case Status.Paused:
-        pauseVideo();
-        break;
+  const handleLeave = async () => {
+    const token = localStorage.getItem("token");
+    const response = await fetch(`http://localhost:3000/party/${partyID}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      credentials: "include",
+      body: JSON.stringify({ leave: true }),
+    });
+    if (response.ok) {
+      socket.emit("leave", { partyID, user });
+      navigate("/")
+    }
+  };
+
+  const updateDuration = () => {
+    const rawSeconds = videoRef?.current?.getCurrentTime() || 0;
+    const seconds = Math.floor(rawSeconds);
+    socket.emit("duration", { partyID, seconds, user });
+  };
+  const playVideo = () => {
+    socket.emit("play", { partyID, user });
+  };
+  const pauseVideo = () => {
+    socket.emit("pause", { partyID, user });
+  };
+
+  const getParticipants = async () => {
+    const token = localStorage.getItem("token");
+    const response = await fetch(
+      `http://localhost:3000/party/${partyID}/users`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    if (response.ok) {
+      const users = await response.json();
+      return users;
     }
   };
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
 
-    const updateDuration = async () => {
-      const rawSeconds =
-        await videoRef?.current?.internalPlayer.getCurrentTime();
-      const seconds = Math.floor(rawSeconds);
-      socket.emit("duration", { partyID, seconds });
-    };
+    console.log("Status: " + videoStatus);
 
     if (youtubeID && videoStatus === Status.Playing) {
       timer = setInterval(updateDuration, 2000);
@@ -117,7 +157,7 @@ const Party = () => {
     return () => {
       clearInterval(timer);
     };
-  }, [youtubeID, partyID, videoRef, videoStatus, Status.Playing]);
+  }, [youtubeID, partyID, videoRef, videoStatus, user]);
 
   return (
     <main className="bg-[#272526] text-white h-screen flex flex-col">
@@ -144,19 +184,22 @@ const Party = () => {
           ) : (
             <button onClick={() => navigate("/login")}>Login</button>
           )}
+          <button onClick={handleLeave}>
+            <IoExitOutline size={25} />
+          </button>
         </nav>
       </div>
       <div className="flex">
         <section className="m-2 border rounded-lg w-fit">
-          <YouTube
-            videoId={youtubeID}
-            opts={{
-              width: "854",
-              height: "480",
-            }}
-            onStateChange={handleStateChange}
+          <ReactPlayer
+            url={youtubeID}
+            controls={true}
             ref={videoRef}
-          />
+            onPause={() => pauseVideo()}
+            onPlay={() => playVideo()}
+            width={854}
+            height={480}
+          ></ReactPlayer>
         </section>
 
         <section className="flex-1">

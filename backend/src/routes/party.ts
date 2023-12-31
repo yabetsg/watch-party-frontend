@@ -5,7 +5,7 @@ import { authorize } from "../middleware/authorize";
 import { CustomRequest } from "../types";
 import User from "../models/User";
 const router = express.Router();
-//TODO: Join room after refresh
+
 //create new party
 router.post("/:id", authorize, async (req: Request, res: Response) => {
   const partyID = req.params.id;
@@ -25,8 +25,8 @@ router.post("/:id", authorize, async (req: Request, res: Response) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
-// return current party saved in cookies
-router.get("/", async (req: CustomRequest, res) => {
+// return current party details saved in cookies
+router.get("/:id", async (req: CustomRequest, res) => {
   const currentParty = req.cookies.currentParty
     ? JSON.parse(req.cookies.currentParty)
     : null;
@@ -35,34 +35,97 @@ router.get("/", async (req: CustomRequest, res) => {
     data: currentParty,
   });
 });
+//get users inside a party
+router.get("/:id/users", async (req: CustomRequest, res) => {
+  const partyID = req.params.id;
 
-// join/leave party
-router.put("/:id", authorize, async (req: CustomRequest, res: Response) => {
-  const partyId = req.params.id;
+  const users = await User.find(
+    {
+      partyID: partyID,
+    },
+    "username -_id"
+  );
+
+  res.json(users);
+});
+
+router.patch("/:id", authorize, async (req: CustomRequest, res: Response) => {
+  const partyID = req.params.id;
   const user = req.user as { user: { _id: string } };
+  const youtubeID = req.body.youtubeID ? req.body.youtubeID : null;
+  const joining = req.body.join;
+  const leaving = req.body.leave;
+  let updatedParty;
+  let updatedUser;
 
   try {
-    const updatedParty = await Party.findOneAndUpdate(
-      {
-        partyID: partyId,
-      },
-      {
-        $inc: { participants: 1 },
-      },
-      { new: true }
-    );
+    if (youtubeID) {
+      updatedParty = await Party.findOneAndUpdate(
+        {
+          partyID: partyID,
+        },
+        {
+          $set: { videoID: youtubeID },
+        },
+        { new: true }
+      );
+    }
+    if (joining) {
+      // check if user has already joined
 
-    const updatedUser = await User.findByIdAndUpdate(
-      user.user._id,
-      {
-        $set: { partyID: partyId },
-      },
-      { new: true }
-    );
+      const userExists = await User.findOne({ partyID }).exec();
+      if (userExists) {
+        const currentParty = req.cookies.currentParty
+          ? JSON.parse(req.cookies.currentParty)
+          : null;
+
+        return res.json({
+          data: currentParty,
+        });
+      }
+
+      updatedParty = await Party.findOneAndUpdate(
+        {
+          partyID: partyID,
+        },
+        {
+          $inc: { participants: 1 },
+        },
+        { new: true }
+      );
+
+      updatedUser = await User.findByIdAndUpdate(
+        user.user._id,
+        {
+          $set: { partyID: partyID },
+        },
+        { new: true }
+      );
+    }
+    if (leaving) {
+      updatedParty = await Party.findOneAndUpdate(
+        {
+          partyID: partyID,
+        },
+        {
+          $inc: { participants: -1 },
+        },
+        { new: true }
+      );
+
+      updatedUser = await User.findByIdAndUpdate(
+        user.user._id,
+        {
+          $set: { partyID: null },
+        },
+        { new: true }
+      );
+    }
+
     res.cookie("currentParty", JSON.stringify(updatedParty));
     req.partyInfo = updatedParty ? updatedParty : undefined;
 
-    res.json({
+    return res.json({
       updatedParty,
       updatedUser,
     });
