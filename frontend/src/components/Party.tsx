@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-import { IoExitOutline, IoSearch, IoSend } from "react-icons/io5";
+import { IoExitOutline, IoSearch } from "react-icons/io5";
 import ReactPlayer from "react-player";
 import { socket } from "../socket";
 import { Status } from "../types";
@@ -9,11 +9,14 @@ import { useNavigate, useParams } from "react-router-dom";
 import { handleLogout } from "../shared";
 
 import useUserData from "../hooks/useUserData";
-
+import Chat from "./Chat";
+import Menu from "./Menu";
+import Participants from "./Participants";
+//TODO: handle a bunch of edge cases with requests, handle errors better
 const Party = () => {
   const { partyID } = useParams();
-  const [chatValue, setChatValue] = useState("");
   const [searchInput, setSearchInput] = useState("");
+  const [menu, setMenu] = useState("chat");
   const [youtubeID, setYoutubeID] = useState("");
   const [videoStatus, setVideoStatus] = useState<Status>(Status.Paused);
   const videoRef = useRef<ReactPlayer>(null);
@@ -35,6 +38,7 @@ const Party = () => {
 
     if (response.ok) {
       const { data } = await response.json();
+      // console.log(data);
 
       const user = await getUser();
       setUser(user);
@@ -111,7 +115,7 @@ const Party = () => {
     });
     if (response.ok) {
       socket.emit("leave", { partyID, user });
-      navigate("/")
+      navigate("/");
     }
   };
 
@@ -202,19 +206,11 @@ const Party = () => {
           ></ReactPlayer>
         </section>
 
-        <section className="flex-1">
-          <div className="flex h-[90%]"></div>
-          <div className="flex p-2 border rounded-full">
-            <input
-              type="text"
-              className="flex-1 p-2 bg-transparent outline-none"
-              onChange={(e) => setChatValue(e.target.value)}
-            />
-            <button className={`${chatValue ? "opacity-100" : "opacity-20"}`}>
-              <IoSend size={25} />
-            </button>
-          </div>
-        </section>
+        <div className="flex flex-col flex-1">
+          <Menu menu={menu} setMenu={setMenu}/>
+          {menu==="chat"&& <Chat />}
+          {menu==="participants"&&  <Participants/>}
+        </div>
       </div>
     </main>
   );
