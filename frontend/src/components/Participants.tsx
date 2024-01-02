@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
+import useUserData from "../hooks/useUserData";
 
 const Participants = () => {
   interface Participants {
@@ -9,10 +10,12 @@ const Participants = () => {
 
   const { partyID } = useParams();
   const [participants, setParticipants] = useState<Participants[]>([]);
+  const [host, setHost] = useState<string>("");
+  const [user, setUser] = useState("");
+  const { getUser } = useUserData();
 
   const getParticipants = async () => {
     const token = localStorage.getItem("token");
-
     const response = await fetch(
       `http://localhost:3000/party/${partyID}/users`,
       {
@@ -27,7 +30,38 @@ const Participants = () => {
 
     if (response.ok) {
       const data = await response.json();
-      setParticipants(data);
+      console.log(data);
+
+      const user = await getUser();
+      setParticipants(data.users);
+      setHost(data.party.host);
+      setUser(user);
+    }
+  };
+
+  const updatehost = async (token: string, newHost: string) => {
+    const response = await fetch(`http://localhost:3000/party/${partyID}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ newHost }),
+      credentials: "include",
+    });
+
+    if (response.ok) {
+      setHost(newHost);
+    }
+  };
+
+  const handleHost = (username: string) => {
+    // const username = usernameRef.current?.textContent;
+    const token = localStorage.getItem("token");
+    console.log(username);
+
+    if (username && token) {
+      updatehost(token, username);
     }
   };
   useEffect(() => {
@@ -39,14 +73,22 @@ const Participants = () => {
       <div className="flex flex-col">
         {participants.map((participant) => {
           return (
-            <button key={participant._id} className="flex items-center justify-around gap-2 p-2 hover:bg-slate-400 hover:transition hover:duration-700">
+            <button
+              key={participant._id}
+              className="flex items-center justify-around gap-2 p-2 hover:bg-slate-400 hover:transition hover:duration-700"
+            >
               <span className="p-2 text-2xl">{participant.username}</span>
-              <div className="flex gap-4">
-                <span className="p-1 bg-green-700 hover:bg-green-800">
-                  Host
-                </span>
-                <span className="p-1 bg-red-700 hover:bg-red-800">Kick</span>
-              </div>
+              {user === host && (
+                <div className="flex gap-4">
+                  <span
+                    className="p-1 bg-green-700 hover:bg-green-800"
+                    onClick={() => handleHost(participant.username)}
+                  >
+                    Host
+                  </span>
+                  <span className="p-1 bg-red-700 hover:bg-red-800">Kick</span>
+                </div>
+              )}
             </button>
           );
         })}

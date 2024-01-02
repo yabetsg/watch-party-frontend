@@ -12,7 +12,8 @@ import useUserData from "../hooks/useUserData";
 import Chat from "./Chat";
 import Menu from "./Menu";
 import Participants from "./Participants";
-//TODO: handle a bunch of edge cases with requests, handle errors better
+//TODO: issue with host auto assign on join/ possible solution: have create event for creation instead of joining
+//TODO: add functionality to host/kick
 const Party = () => {
   const { partyID } = useParams();
   const [searchInput, setSearchInput] = useState("");
@@ -39,11 +40,12 @@ const Party = () => {
     if (response.ok) {
       const { data } = await response.json();
       // console.log(data);
-
       const user = await getUser();
       setUser(user);
       socket.emit("join", { partyID, user });
       setYoutubeID(data.videoID ? data.videoID : "");
+    }else{
+      navigate("/")
     }
   };
 
@@ -74,8 +76,12 @@ const Party = () => {
     });
     socket.on("switch_host", async () => {
       const [users] = await getParticipants();
-      socket.emit("assign_host", users.username);
+      localStorage.setItem("host",users.username)
+      socket.emit("assign_host", { partyID, user:users.username });
     });
+    socket.on("assigned_host",(user)=>{
+      localStorage.setItem("host",user)
+    })
     initializeParty();
   }, []);
 

@@ -60,12 +60,19 @@ io.on("connection", (socket) => {
   socket.on("disconnect", (msg) => {
     console.log("disconnected: " + msg);
   });
+  socket.on("create",({ partyID, user })=>{
+    socket.join(partyID);
+    host = user
+    io.to(partyID).emit("assigned_host",host)
+  })
   socket.on("join", ({ partyID, user }) => {
     socket.join(partyID);
     if (!host) {
       host = user;
+      io.to(partyID).emit("assigned_host",host)
+    }else{
+      io.to(partyID).emit("assigned_host",host);
     }
-
     console.log(`${user} joined party ${partyID}`);
   });
 
@@ -97,8 +104,9 @@ io.on("connection", (socket) => {
       io.to(partyID).emit("duration", seconds);
     }
   });
-  socket.on("assign_host", (user) => {
+  socket.on("assign_host", ({ partyID, user }) => {
     host = user;
+    io.to(partyID).emit("assigned_host",host)
   });
 });
 

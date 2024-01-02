@@ -15,9 +15,9 @@ const router = express.Router();
 
 router.post("/:id", authorize, create_party);
 
-router.get("/:id", get_party_info);
+router.get("/:id",authorize, get_party_info);
 
-router.get("/:id/users", get_participants);
+router.get("/:id/users",authorize, get_participants);
 
 router.patch("/:id", authorize, update_party);
 

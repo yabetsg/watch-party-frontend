@@ -18,6 +18,7 @@ const UserProvider = ({ children }: { children: ReactNode }) => {
 
       if (response.ok) {
         const { user } = await response.json();
+        
         return user.username;
       } else {
         return response.statusText;

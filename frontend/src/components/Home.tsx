@@ -9,17 +9,15 @@ import useUserData from "../hooks/useUserData";
 const Home = () => {
   const [displayJoinModal, setDisplayJoinModal] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [username,setUsername] = useState("");
+  const [username, setUsername] = useState("");
   // const { user } = useContext(UserContext);
   const { getUser } = useUserData();
   const navigate = useNavigate();
 
   const handleCreate = async () => {
-    const id = generatePartyID();
+    const partyID = generatePartyID();
     const token = localStorage.getItem("token");
-    socket.emit("join", id);
-    navigate("/party/" + id);
-    const response = await fetch(`http://localhost:3000/party/${id}`, {
+    const response = await fetch(`http://localhost:3000/party/${partyID}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -27,8 +25,10 @@ const Home = () => {
       },
     });
     if (response.ok) {
-      const data = await response.json();
-      console.log(data);
+      const { data } = await response.json();
+      const user = await getUser();
+      socket.emit("join", { partyID, user });
+      navigate(`/party/${data.partyID}`);
     }
   };
 
@@ -40,7 +40,7 @@ const Home = () => {
       const user = await getUser();
       if (user) {
         setLoading(false);
-        setUsername(user)
+        setUsername(user);
       } else {
         navigate("/login");
       }
