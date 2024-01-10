@@ -1,10 +1,22 @@
-import { ReactNode, createContext } from "react";
-interface User {
+import { Dispatch, ReactNode, SetStateAction, createContext, useEffect, useState } from "react";
+interface App {
   getUser: () => Promise<string>;
+  setHost:Dispatch<SetStateAction<string>>
+  host:string
 }
-export const UserContext = createContext<User>({ getUser: () => Promise.resolve("") });
+export const UserContext = createContext<App>({ getUser: () => Promise.resolve(""),setHost:()=>"",host:""});
 
 const UserProvider = ({ children }: { children: ReactNode }) => {
+  const [host,setHost] = useState(()=>{
+    const initHost = localStorage.getItem("host");
+    if(initHost){
+      return initHost
+    }else{
+      return ""
+    }
+  });
+
+
   const getUser = async () => {
     const token = localStorage.getItem("token");
     if (token !== "undefined" && token !== null) {
@@ -26,8 +38,14 @@ const UserProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  useEffect(()=>{
+
+  })
+
   const userState = {
     getUser,
+    setHost,
+    host
   };
   return (
     <UserContext.Provider value={userState}>{children}</UserContext.Provider>

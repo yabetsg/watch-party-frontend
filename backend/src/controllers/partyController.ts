@@ -2,9 +2,10 @@ import { Request, Response, NextFunction } from "express";
 import Party from "../models/Party";
 import { CustomRequest } from "../types";
 import User from "../models/User";
+import Chat from "../models/Chat";
 
 export const create_party = async (req: CustomRequest, res: Response) => {
-  const partyID = req.params.id;
+  const partyID = req.params.partyID;
   const { user } = req.user as { user: { _id: string; username: string } };
   if (!partyID) {
     return res.status(400).json({ error: "Party ID is required" });
@@ -16,10 +17,17 @@ export const create_party = async (req: CustomRequest, res: Response) => {
       participants: 1,
       host: user.username,
     });
+    const newChat = new Chat({
+      partyID,
+    })
     await newParty.save();
+    await newChat.save();
+
     await User.findByIdAndUpdate(user._id, {
       $set: { partyID },
     }).exec();
+
+    res.cookie("currentParty", JSON.stringify(newParty));
     res.status(200).json({ message: "Party Created", data: newParty });
   } catch (err) {
     console.error("Error creating party:", err);
@@ -30,31 +38,26 @@ export const create_party = async (req: CustomRequest, res: Response) => {
 // return current party details saved in cookies else otherwise query for it
 
 export const get_party_info = async (req: CustomRequest, res: Response) => {
-  const partyID = req.params.id;
-  let savedParty;
-  if (
-    req.cookies.currentParty !== undefined &&
-    req.cookies.currentParty !== null
-  ) {
-    savedParty = req.cookies.currentParty;
-  }
+  const partyID = req.params.partyID;
+  let savedParty = req.cookies.currentParty;
 
-  if (!savedParty) {
+  if (savedParty == "null" || savedParty == undefined) {
     const partyInfo = await Party.findOne({ partyID }).exec();
-
     if (!partyInfo) {
       return res.status(404).json({ message: "Party doesn't exist" });
     }
+
     return res.status(200).json({ data: partyInfo });
   }
 
+
   res.json({
-    data: savedParty,
+    data: JSON.parse(savedParty),
   });
 };
 
 export const get_participants = async (req: CustomRequest, res: Response) => {
-  const partyID = req.params.id;
+  const partyID = req.params.partyID;
   const party = await Party.findOne({ partyID }, "host -_id");
   const users = await User.find(
     {
@@ -70,7 +73,7 @@ export const get_participants = async (req: CustomRequest, res: Response) => {
 };
 
 export const update_party = async (req: CustomRequest, res: Response) => {
-  const partyID = req.params.id;
+  const partyID = req.params.partyID;
   const { user } = req.user as { user: { _id: string } };
   const youtubeID = req.body.youtubeID ? req.body.youtubeID : null;
   const host = req.body.newHost;
@@ -159,10 +162,9 @@ export const update_party = async (req: CustomRequest, res: Response) => {
       if (updatedParty?.participants === 0) {
         await Party.deleteOne({ partyID });
         res.cookie("currentParty", "", { expires: new Date(0) });
-        return res.status(200);
+        return res.status(200).json({ message: "deleted party" });
       }
     }
-    console.log(updatedParty);
 
     res.cookie("currentParty", JSON.stringify(updatedParty));
     req.partyInfo = updatedParty ? updatedParty : undefined;

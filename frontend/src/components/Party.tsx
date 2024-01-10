@@ -12,17 +12,18 @@ import useUserData from "../hooks/useUserData";
 import Chat from "./Chat";
 import Menu from "./Menu";
 import Participants from "./Participants";
-//TODO: issue with host auto assign on join/ possible solution: have create event for creation instead of joining
-//TODO: add functionality to host/kick
+
+//TODO: fix issue causing video to be paused when seeking.
 const Party = () => {
   const { partyID } = useParams();
   const [searchInput, setSearchInput] = useState("");
   const [menu, setMenu] = useState("chat");
   const [youtubeID, setYoutubeID] = useState("");
+
   const [videoStatus, setVideoStatus] = useState<Status>(Status.Paused);
   const videoRef = useRef<ReactPlayer>(null);
   const [user, setUser] = useState<string>("");
-  const { getUser } = useUserData();
+  const { getUser, host, setHost } = useUserData();
   const navigate = useNavigate();
 
   const initializeParty = async () => {
@@ -39,51 +40,15 @@ const Party = () => {
 
     if (response.ok) {
       const { data } = await response.json();
-      // console.log(data);
       const user = await getUser();
       setUser(user);
-      socket.emit("join", { partyID, user });
-      setYoutubeID(data.videoID ? data.videoID : "");
-    }else{
-      navigate("/")
+      socket.emit("join", partyID, user);
+      const videoUrl = data.videoID ? data.videoID : "";
+      setYoutubeID(videoUrl);
+    } else {
+      navigate("/");
     }
   };
-
-  useEffect(() => {
-    socket.on("search", (youtubeID: string) => {
-      setYoutubeID(youtubeID);
-      updateVideo(youtubeID);
-    });
-
-    socket.on("play", () => {
-      console.log("onPlay");
-      setVideoStatus(Status.Playing);
-      videoRef.current?.getInternalPlayer().playVideo();
-    });
-
-    socket.on("pause", () => {
-      console.log("onPause");
-      setVideoStatus(Status.Paused);
-      videoRef.current?.getInternalPlayer().pauseVideo();
-    });
-
-    socket.on("duration", async (seconds) => {
-      const clientSeconds = videoRef?.current?.getCurrentTime() || 0;
-      if (Math.abs(seconds - clientSeconds) > 3) {
-        videoRef?.current?.seekTo(seconds);
-        videoRef.current?.getInternalPlayer().playVideo();
-      }
-    });
-    socket.on("switch_host", async () => {
-      const [users] = await getParticipants();
-      localStorage.setItem("host",users.username)
-      socket.emit("assign_host", { partyID, user:users.username });
-    });
-    socket.on("assigned_host",(user)=>{
-      localStorage.setItem("host",user)
-    })
-    initializeParty();
-  }, []);
 
   const updateVideo = async (youtubeID: string) => {
     const token = localStorage.getItem("token");
@@ -97,16 +62,17 @@ const Party = () => {
       body: JSON.stringify({ youtubeID }),
     });
     if (response.ok) {
-      const data = await response.json();
-      console.log("Party updated with youtube id: " + JSON.stringify(data));
+      //
     }
   };
 
   const handleSearch = () => {
-    socket.emit("search", { partyID, youtubeID: searchInput });
-    console.log(searchInput);
+    if (user == host) {
+      socket.emit("search", partyID, searchInput);
+      console.log(searchInput);
 
-    setSearchInput("");
+      setSearchInput("");
+    }
   };
   const handleLeave = async () => {
     const token = localStorage.getItem("token");
@@ -120,21 +86,42 @@ const Party = () => {
       body: JSON.stringify({ leave: true }),
     });
     if (response.ok) {
-      socket.emit("leave", { partyID, user });
+      if (user === host) {
+        socket.emit("leave", partyID, user);
+
+        //switch host
+        const { users } = await getParticipants();
+        if (users && users.length > 0) {
+          console.log(users);
+          console.log("switched to " + users[0].username);
+          socket.emit("assign_host", partyID, users[0].username);
+        } else {
+          navigate("/");
+        }
+      }
       navigate("/");
+    } else {
+      //handle error
+      console.log("Error leaving party");
     }
   };
 
   const updateDuration = () => {
     const rawSeconds = videoRef?.current?.getCurrentTime() || 0;
     const seconds = Math.floor(rawSeconds);
-    socket.emit("duration", { partyID, seconds, user });
+    if (user == host) {
+      socket.emit("duration", partyID, seconds);
+    }
   };
   const playVideo = () => {
-    socket.emit("play", { partyID, user });
+    if (user === host) {
+      socket.emit("play", partyID);
+    }
   };
   const pauseVideo = () => {
-    socket.emit("pause", { partyID, user });
+    if (user === host) {
+      socket.emit("pause", partyID);
+    }
   };
 
   const getParticipants = async () => {
@@ -156,9 +143,43 @@ const Party = () => {
   };
 
   useEffect(() => {
-    let timer: NodeJS.Timeout;
+    socket.on("search", (youtubeID: string) => {
+      setYoutubeID(youtubeID);
+      updateVideo(youtubeID);
+    });
 
-    console.log("Status: " + videoStatus);
+    socket.on("play", () => {
+      setVideoStatus(Status.Playing);
+      videoRef.current?.getInternalPlayer().playVideo();
+    });
+
+    socket.on("pause", () => {
+      setVideoStatus(Status.Paused);
+      videoRef.current?.getInternalPlayer().pauseVideo();
+    });
+
+    socket.on("duration", async (seconds) => {
+      const clientSeconds = videoRef?.current?.getCurrentTime() || 0;
+      if (Math.abs(seconds - clientSeconds) > 3) {
+        videoRef?.current?.seekTo(seconds);
+        videoRef.current?.getInternalPlayer().playVideo();
+      }
+    });
+    socket.on("switch_host", async () => {
+      const [users] = await getParticipants();
+      localStorage.setItem("host", users.username);
+      socket.emit("assign_host", partyID, users.username);
+    });
+
+    socket.on("assign_host", (newHost) => {
+      setHost(newHost);
+      localStorage.setItem("host", newHost);
+    });
+    initializeParty();
+  }, []);
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
 
     if (youtubeID && videoStatus === Status.Playing) {
       timer = setInterval(updateDuration, 2000);
@@ -213,9 +234,9 @@ const Party = () => {
         </section>
 
         <div className="flex flex-col flex-1">
-          <Menu menu={menu} setMenu={setMenu}/>
-          {menu==="chat"&& <Chat />}
-          {menu==="participants"&&  <Participants/>}
+          <Menu menu={menu} setMenu={setMenu} />
+          {menu === "chat" && <Chat />}
+          {menu === "participants" && <Participants />}
         </div>
       </div>
     </main>

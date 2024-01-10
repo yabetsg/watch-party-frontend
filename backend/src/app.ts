@@ -11,6 +11,7 @@ import { authorize } from "./middleware/authorize";
 import { CustomRequest } from "./types";
 import authRouter from "./routes/auth";
 import cookieParser from "cookie-parser";
+import chatRouter from "./routes/chat";
 dotenv.config();
 const app = express();
 app.use(express.static("src"));
@@ -44,6 +45,8 @@ app.get("/", (req, res) => {
 app.use("/users", userRouter);
 app.use("/party", partyRouter);
 app.use("/auth", authRouter);
+// app.use("/party/:partyID/chat",chatRouter);
+
 
 let host: string | null = null;
 io.on("connection", (socket) => {
@@ -60,53 +63,39 @@ io.on("connection", (socket) => {
   socket.on("disconnect", (msg) => {
     console.log("disconnected: " + msg);
   });
-  socket.on("create",({ partyID, user })=>{
+  socket.on("create", (partyID ) => {
     socket.join(partyID);
-    host = user
-    io.to(partyID).emit("assigned_host",host)
-  })
-  socket.on("join", ({ partyID, user }) => {
+
+  });
+  socket.on("join", (partyID, user ) => {
     socket.join(partyID);
-    if (!host) {
-      host = user;
-      io.to(partyID).emit("assigned_host",host)
-    }else{
-      io.to(partyID).emit("assigned_host",host);
-    }
     console.log(`${user} joined party ${partyID}`);
   });
 
-  socket.on("leave", ({ partyID, user }) => {
+  socket.on("leave", (partyID, user) => {
     socket.leave(partyID);
-    if (user === host) {
-      io.to(partyID).emit("switch_host");
-    }
+    io.to(partyID).emit("switch_host");
     console.log(`${user} left party ${partyID}`);
-
-  });
-  socket.on("play", ({ partyID, user }) => {
-    if (user === host) {
-      io.to(partyID).emit("play");
-    }
   });
 
-  socket.on("pause", ({ partyID, user }) => {
-    if (user === host) {
-      io.to(partyID).emit("pause");
-    }
+  socket.on("play", (partyID) => {
+    io.to(partyID).emit("play");
   });
 
-  socket.on("search", ({ partyID, youtubeID }) => {
+  socket.on("pause", (partyID) => {
+    io.to(partyID).emit("pause");
+  });
+
+  socket.on("search", (partyID, youtubeID) => {
     io.to(partyID).emit("search", youtubeID);
   });
-  socket.on("duration", ({ partyID, seconds, user }) => {
-    if (user === host) {
-      io.to(partyID).emit("duration", seconds);
-    }
+
+  socket.on("duration", (partyID, seconds) => {
+    io.to(partyID).emit("duration", seconds);
   });
-  socket.on("assign_host", ({ partyID, user }) => {
-    host = user;
-    io.to(partyID).emit("assigned_host",host)
+
+  socket.on("assign_host", (partyID, newHost) => {
+    io.to(partyID).emit("assign_host", newHost);
   });
 });
 

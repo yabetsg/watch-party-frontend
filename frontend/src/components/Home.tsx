@@ -10,7 +10,6 @@ const Home = () => {
   const [displayJoinModal, setDisplayJoinModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [username, setUsername] = useState("");
-  // const { user } = useContext(UserContext);
   const { getUser } = useUserData();
   const navigate = useNavigate();
 
@@ -27,7 +26,8 @@ const Home = () => {
     if (response.ok) {
       const { data } = await response.json();
       const user = await getUser();
-      socket.emit("join", { partyID, user });
+      socket.emit("create", { partyID, user });
+      localStorage.setItem("host",user)
       navigate(`/party/${data.partyID}`);
     }
   };

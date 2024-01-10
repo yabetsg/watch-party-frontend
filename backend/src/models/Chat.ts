@@ -1,10 +1,13 @@
 import mongoose from "mongoose";
+import Message from "./Message";
 
 const Schema = mongoose.Schema;
 
 const ChatSchema = new Schema({
-  partyID: { type: mongoose.Types.ObjectId, ref: "Party" },
-  messages: [{ type: mongoose.Types.ObjectId, ref: "Message" }],
+  partyID: { type: String, ref: "Party" },
+  messages: [
+    Message.schema
+  ],
 });
 
 export default mongoose.model("Chat", ChatSchema);
