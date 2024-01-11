@@ -3,6 +3,7 @@ import { IoSend } from "react-icons/io5";
 import uuid from "react-uuid";
 import useUserData from "../hooks/useUserData";
 import { useParams } from "react-router-dom";
+import { socket } from "../socket";
 // interface Chat {
 //   id: string;
 //   message:Message
@@ -46,15 +47,16 @@ const Chat = () => {
     }
   };
   const sendChat = async () => {
-    const id = uuid();
+    const id = uuid()
     const token = localStorage.getItem("token");
-    const user = await getUser()
+    const user = await getUser();
     const message = {
       user,
       messageID: id,
       content: chatValue,
       timestamp: Date.now(),
     } as Message;
+    socket.emit("chat", partyID, message);
 
     setChat((prevMessages) => [...prevMessages, message]);
 
@@ -89,7 +91,15 @@ const Chat = () => {
     if (token) {
       initializeChat(token);
     }
-  }, []);
+    const handleChat = (message: Message) => {
+      setChat((prevMsg) => [...prevMsg, message]);
+    };
+
+    socket.on("chat", handleChat);
+    return () => {
+      socket.off("chat", handleChat);
+    };
+  }, [socket]);
 
   return (
     <section className="flex-1">
