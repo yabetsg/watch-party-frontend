@@ -13,3 +13,8 @@ export interface Login{
     password:string,
 }
 
+export interface Participants {
+    _id: string;
+    username: string;
+  }
+

@@ -6,6 +6,7 @@ import Chat from "../models/Chat";
 
 export const create_party = async (req: CustomRequest, res: Response) => {
   const partyID = req.params.partyID;
+
   const { user } = req.user as { user: { _id: string; username: string } };
   if (!partyID) {
     return res.status(400).json({ error: "Party ID is required" });
@@ -19,7 +20,7 @@ export const create_party = async (req: CustomRequest, res: Response) => {
     });
     const newChat = new Chat({
       partyID,
-    })
+    });
     await newParty.save();
     await newChat.save();
 
@@ -49,7 +50,6 @@ export const get_party_info = async (req: CustomRequest, res: Response) => {
 
     return res.status(200).json({ data: partyInfo });
   }
-
 
   res.json({
     data: JSON.parse(savedParty),

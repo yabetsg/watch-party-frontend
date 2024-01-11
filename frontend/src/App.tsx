@@ -4,18 +4,18 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Party from "./components/Party";
 import Login from "./components/Login";
 import Signup from "./components/Signup";
-import UserProvider from "./context/UserProvider";
+import AppProvider from "./context/AppProvider";
 function App() {
   return (
     <BrowserRouter>
-      <UserProvider>
+      <AppProvider>
         <Routes>
           <Route path="/" element={<Home />}></Route>
           <Route path="/login" element={<Login />}></Route>
           <Route path="/signup" element={<Signup />}></Route>
           <Route path="/party/:partyID" element={<Party />}></Route>
         </Routes>
-      </UserProvider>
+      </AppProvider>
     </BrowserRouter>
   );
 }

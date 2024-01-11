@@ -2,7 +2,7 @@ import { FormEvent, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { socket } from "../socket";
 
-import useUserData from "../hooks/useUserData";
+import useUserData from "../hooks/useAppData";
 const JoinPartyModal = () => {
   const [partyID, setPartyID] = useState("");
   const [error, setError] = useState("");

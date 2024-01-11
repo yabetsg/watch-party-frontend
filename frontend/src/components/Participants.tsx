@@ -1,23 +1,19 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import useUserData from "../hooks/useUserData";
+import useUserData from "../hooks/useAppData";
 import { socket } from "../socket";
-
+import { Participants } from "../types";
 
 const Participants = () => {
-  interface Participants {
-    _id: string;
-    username: string;
-  }
-
   const { partyID } = useParams();
   const [participants, setParticipants] = useState<Participants[]>([]);
-  // const [host, setHost] = useState<string>("");
+
   const [user, setUser] = useState("");
-  const { getUser,setHost,host } = useUserData();
+  const { getUser, setHost, host } = useUserData();
 
   const getParticipants = async () => {
     const token = localStorage.getItem("token");
+
     const response = await fetch(
       `http://localhost:3000/party/${partyID}/users`,
       {
@@ -26,7 +22,6 @@ const Participants = () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        credentials: "include",
       }
     );
 
@@ -51,10 +46,9 @@ const Participants = () => {
     });
 
     if (response.ok) {
-      localStorage.setItem("host",newHost);
-      socket.emit("assign_host",partyID,newHost)
+      localStorage.setItem("host", newHost);
+      socket.emit("assign_host", partyID, newHost);
       console.log("assigned host");
-      
     }
   };
 
@@ -81,7 +75,7 @@ const Participants = () => {
               className="flex items-center justify-around gap-2 p-2 hover:bg-slate-400 hover:transition hover:duration-700"
             >
               <span className="p-2 text-2xl">{participant.username}</span>
-              {user === host && participant.username!=user&& (
+              {user === host && participant.username != user && (
                 <div className="flex gap-4">
                   <span
                     className="p-1 bg-green-700 hover:bg-green-800"

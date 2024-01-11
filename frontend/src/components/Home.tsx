@@ -5,7 +5,7 @@ import { socket } from "../socket";
 import { useNavigate } from "react-router-dom";
 
 import { handleLogout } from "../shared";
-import useUserData from "../hooks/useUserData";
+import useUserData from "../hooks/useAppData";
 const Home = () => {
   const [displayJoinModal, setDisplayJoinModal] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -27,7 +27,7 @@ const Home = () => {
       const { data } = await response.json();
       const user = await getUser();
       socket.emit("create", { partyID, user });
-      localStorage.setItem("host",user)
+      localStorage.setItem("host", user);
       navigate(`/party/${data.partyID}`);
     }
   };

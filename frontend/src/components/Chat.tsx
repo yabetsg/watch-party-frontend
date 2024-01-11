@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { IoSend } from "react-icons/io5";
 import uuid from "react-uuid";
-import useUserData from "../hooks/useUserData";
+import useUserData from "../hooks/useAppData";
 import { useParams } from "react-router-dom";
 import { socket } from "../socket";
 // interface Chat {
@@ -47,7 +47,7 @@ const Chat = () => {
     }
   };
   const sendChat = async () => {
-    const id = uuid()
+    const id = uuid();
     const token = localStorage.getItem("token");
     const user = await getUser();
     const message = {

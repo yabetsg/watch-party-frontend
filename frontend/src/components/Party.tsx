@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { IoExitOutline, IoSearch } from "react-icons/io5";
 import ReactPlayer from "react-player";
@@ -8,12 +8,12 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import { handleLogout } from "../shared";
 
-import useUserData from "../hooks/useUserData";
 import Chat from "./Chat";
 import Menu from "./Menu";
 import Participants from "./Participants";
+import useAppData from "../hooks/useAppData";
 
-//TODO: fix issue causing video to be paused when seeking.
+
 const Party = () => {
   const { partyID } = useParams();
   const [searchInput, setSearchInput] = useState("");
@@ -23,10 +23,10 @@ const Party = () => {
   const [videoStatus, setVideoStatus] = useState<Status>(Status.Paused);
   const videoRef = useRef<ReactPlayer>(null);
   const [user, setUser] = useState<string>("");
-  const { getUser, host, setHost } = useUserData();
+  const { getUser, host, setHost } = useAppData();
   const navigate = useNavigate();
 
-  const initializeParty = async () => {
+  const initializeParty = useCallback(async () => {
     const token = localStorage.getItem("token");
 
     const response = await fetch(`http://localhost:3000/party/${partyID}`, {
@@ -48,23 +48,26 @@ const Party = () => {
     } else {
       navigate("/");
     }
-  };
+  }, [getUser, navigate, partyID]);
 
-  const updateVideo = async (youtubeID: string) => {
-    const token = localStorage.getItem("token");
-    const response = await fetch(`http://localhost:3000/party/${partyID}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      credentials: "include",
-      body: JSON.stringify({ youtubeID }),
-    });
-    if (response.ok) {
-      //
-    }
-  };
+  const updateVideo = useCallback(
+    async (youtubeID: string) => {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`http://localhost:3000/party/${partyID}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        credentials: "include",
+        body: JSON.stringify({ youtubeID }),
+      });
+      if (response.ok) {
+        //
+      }
+    },
+    [partyID]
+  );
 
   const handleSearch = () => {
     if (user == host) {
@@ -106,13 +109,13 @@ const Party = () => {
     }
   };
 
-  const updateDuration = () => {
+  const updateDuration = useCallback(() => {
     const rawSeconds = videoRef?.current?.getCurrentTime() || 0;
     const seconds = Math.floor(rawSeconds);
     if (user == host) {
       socket.emit("duration", partyID, seconds);
     }
-  };
+  }, [host, partyID, user]);
   const playVideo = () => {
     if (user === host) {
       socket.emit("play", partyID);
@@ -124,7 +127,7 @@ const Party = () => {
     }
   };
 
-  const getParticipants = async () => {
+  const getParticipants = useCallback(async () => {
     const token = localStorage.getItem("token");
     const response = await fetch(
       `http://localhost:3000/party/${partyID}/users`,
@@ -140,7 +143,7 @@ const Party = () => {
       const users = await response.json();
       return users;
     }
-  };
+  }, [partyID]);
 
   useEffect(() => {
     socket.on("search", (youtubeID: string) => {
@@ -176,7 +179,7 @@ const Party = () => {
       localStorage.setItem("host", newHost);
     });
     initializeParty();
-  }, []);
+  }, [getParticipants, initializeParty, partyID, setHost, updateVideo]);
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -188,7 +191,7 @@ const Party = () => {
     return () => {
       clearInterval(timer);
     };
-  }, [youtubeID, partyID, videoRef, videoStatus, user]);
+  }, [youtubeID, partyID, videoRef, videoStatus, user, updateDuration]);
 
   return (
     <main className="bg-[#272526] text-white h-screen flex flex-col">
