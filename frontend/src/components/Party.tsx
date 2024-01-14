@@ -19,8 +19,6 @@ import {
   DocumentDuplicateIcon,
 } from "@heroicons/react/24/outline";
 
-
-
 const Party = () => {
   const { partyID } = useParams();
   const [searchInput, setSearchInput] = useState("");
@@ -30,7 +28,9 @@ const Party = () => {
   const [videoStatus, setVideoStatus] = useState<Status>(Status.Paused);
   const videoRef = useRef<ReactPlayer>(null);
   const [user, setUser] = useState<string>("");
-  const [displayDropdown, setDisplayDropdown] = useState<boolean>(false);
+  const [logoutDropdown, setLogoutDropdown] = useState<boolean>(false);
+  const [copyPartyIDDropdown, setCopyPartyIDDropdown] =
+    useState<boolean>(false);
 
   const { getUser, host, setHost } = useAppData();
   const navigate = useNavigate();
@@ -155,10 +155,19 @@ const Party = () => {
   }, [partyID]);
 
   const handleProfileDropdown = () => {
-    setDisplayDropdown((prevState) => !prevState);
+    setLogoutDropdown((prevState) => !prevState);
   };
 
-  
+  const copyPartyID = () => {
+    if (partyID) {
+      navigator.clipboard.writeText(partyID);
+    }
+    setCopyPartyIDDropdown(true);
+    setTimeout(() => {
+      setCopyPartyIDDropdown(false);
+    }, 1500);
+  };
+
   useEffect(() => {
     socket.on("search", (youtubeID: string) => {
       setYoutubeID(youtubeID);
@@ -240,18 +249,33 @@ const Party = () => {
                   </div>
 
                   <div
-                    className={`absolute self-end p-2 text-lg text-center border  rounded-md w-28 bg-[#274060] duration-200 right-12 top-20 border-[#65b5eb] ${
-                      displayDropdown ? "block" : "hidden"
+                    className={`absolute self-end p-2 text-lg text-center border  rounded-md w-28 bg-[#274060] duration-200 right-28 top-20 border-[#65b5eb] ${
+                      logoutDropdown ? "block" : "hidden"
                     }`}
                   >
                     <div className="text-red-500" onClick={handleLogout}>
                       Sign out
                     </div>
                   </div>
+
+                  <div
+                    className={`absolute self-end p-2 text-lg text-center border  rounded-md w-30 bg-[#274060] duration-200 right-10 top-20 border-[#65b5eb] ${
+                      copyPartyIDDropdown ? "block" : "hidden"
+                    }`}
+                  >
+                    <div className="text-green-500" onClick={handleLogout}>
+                      Party id copied to clipboard
+                    </div>
+                  </div>
                 </div>
               </>
             )}
-            
+            <button
+              className="flex items-center gap-2 text-center text-md"
+              onClick={copyPartyID}
+            >
+              <DocumentDuplicateIcon className="w-6 max-w-6" />
+            </button>
             <button onClick={handleLeave}>
               <ArrowRightEndOnRectangleIcon className="w-6 max-w-6" />
             </button>
