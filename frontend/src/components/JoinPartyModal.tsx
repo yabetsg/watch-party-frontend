@@ -3,12 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { socket } from "../socket";
 
 import useUserData from "../hooks/useAppData";
-const JoinPartyModal = () => {
+import { XMarkIcon } from "@heroicons/react/24/solid";
+const JoinPartyModal = ({display,onExit}:{display:boolean,onExit:()=>void}) => {
   const [partyID, setPartyID] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
   const partyRef = useRef<HTMLInputElement>(null);
   const { getUser } = useUserData();
+
   const joinParty = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const token = localStorage.getItem("token");
@@ -34,20 +36,37 @@ const JoinPartyModal = () => {
       setError(err.message);
     }
   };
+
   return (
+    display&&
     <>
-      <div className="p-10">
-        <form action="/party" className="flex flex-col" onSubmit={joinParty}>
-          <label htmlFor="partyID">Party ID:</label>
-          <input
-            ref={partyRef}
-            type="text"
-            name="partyID"
-            id="partyID"
-            onChange={(e) => setPartyID(e.target.value)}
-            className="text-black"
-          />
-          <button type="submit">Join</button>
+    
+      <div className="absolute rounded-lg  p-16 flex flex-col border border-blue-500 bg-gradient-to-r from-[#274060] to-[#0d1422] font-['Kanit'] shadow-2xl">
+        <XMarkIcon className="relative w-8 cursor-pointer left-48 bottom-10 hover:scale-110" onClick={onExit}/>
+        <form
+          action="/party"
+          className="flex flex-col gap-8"
+          onSubmit={joinParty}
+        >
+          <div className="flex flex-col gap-2">
+            <label htmlFor="partyID">Enter party ID:</label>
+            <input
+              ref={partyRef}
+              type="text"
+              name="partyID"
+              id="partyID"
+              onChange={(e) => setPartyID(e.target.value)}
+              className="p-2 text-black rounded-md outline-none border-[2px] focus:border-[#43acf3]"
+              placeholder="party id"
+            />
+          </div>
+
+          <button
+            className="p-2 font-extrabold font-['Kanit'] rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"
+            type="submit"
+          >
+            Join
+          </button>
         </form>
       </div>
       <div className="text-red-500">{error}</div>

@@ -1,3 +1,5 @@
+import { UserGroupIcon } from "@heroicons/react/24/outline";
+import { ChatBubbleOvalLeftEllipsisIcon } from "@heroicons/react/24/outline";
 import { Dispatch, SetStateAction } from "react";
 interface MenuProps {
   menu: string;
@@ -9,12 +11,13 @@ const Menu = ({ menu, setMenu }: MenuProps) => {
     <div className="right-0 flex justify-center gap-4 top-15">
       <div className="">
         <button
-          className="p-1"
+          className="flex gap-2 p-1"
           onClick={() => {
             setMenu("chat");
           }}
         >
           Chat
+          <ChatBubbleOvalLeftEllipsisIcon className="w-5"/>
         </button>
         {menu === "chat" && (
           <div className="w-full h-1 rounded-lg bg-[#09618E]"></div>
@@ -23,13 +26,14 @@ const Menu = ({ menu, setMenu }: MenuProps) => {
 
       <div className="">
         <button
-          className="p-1"
+          className="flex gap-2 p-1"
           onClick={() => {
             console.log("setting to participants");
             setMenu("participants");
           }}
         >
           Participants
+          <UserGroupIcon className="w-5"/>
         </button>
         {menu === "participants" && (
           <div className="w-full h-1 rounded-lg bg-[#09618E]"></div>

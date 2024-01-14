@@ -4,10 +4,8 @@ import uuid from "react-uuid";
 import useUserData from "../hooks/useAppData";
 import { useParams } from "react-router-dom";
 import { socket } from "../socket";
-// interface Chat {
-//   id: string;
-//   message:Message
-// }
+import { UserCircleIcon } from "@heroicons/react/24/outline";
+
 interface Message {
   messageID: string;
   user: string;
@@ -82,7 +80,6 @@ const Chat = () => {
     if (response.ok) {
       const { chat } = await response.json();
       if (chat) {
-        console.log(chat);
         setChat(chat.messages);
       }
     }
@@ -102,19 +99,26 @@ const Chat = () => {
   }, [socket]);
 
   return (
-    <section className="flex-1">
-      <div className="flex flex-col overflow-y-auto h-[500px]">
+    <section className="flex-1 font-['Kanit'] flex flex-col">
+      <div className="flex flex-col  overflow-y-auto max-lg:h-[180px] lg:h-[500px]">
         {chat &&
           chat.map((message) => {
             return (
-              <div key={message.messageID}>
-                <div className="font-semibold">{message.user}</div>
-                <div className="text-gray-500">{message.content}</div>
+              <div key={message.messageID} className="flex p-2 ">
+                <div className="pt-1 pb-2 pr-2">
+                  <UserCircleIcon className="w-8 max-w-8" />
+                </div>
+                <div className="flex flex-col ">
+                  <div className="font-black">{message.user}</div>
+                  <div className="font-thin text-gray-300">
+                    {message.content}
+                  </div>
+                </div>
               </div>
             );
           })}
       </div>
-      <div className="flex p-2 border rounded-full">
+      <div className="flex p-2 border border-[#65b5eb] rounded-full">
         <input
           type="text"
           className="flex-1 p-2 bg-transparent outline-none"

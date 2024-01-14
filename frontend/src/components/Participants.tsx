@@ -72,7 +72,7 @@ const Participants = () => {
           return (
             <button
               key={participant._id}
-              className="flex items-center justify-around gap-2 p-2 hover:bg-slate-400 hover:transition hover:duration-700"
+              className="flex items-center justify-around gap-2 p-2 m-2 hover:bg-[#09618E] hover:transition hover:duration-700 hover:rounded-lg"
             >
               <span className="p-2 text-2xl">{participant.username}</span>
               {user === host && participant.username != user && (

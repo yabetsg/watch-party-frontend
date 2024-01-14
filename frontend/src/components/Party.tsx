@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { IoExitOutline, IoSearch } from "react-icons/io5";
+import { IoSearch } from "react-icons/io5";
 import ReactPlayer from "react-player";
 import { socket } from "../socket";
 import { Status } from "../types";
@@ -12,6 +12,13 @@ import Chat from "./Chat";
 import Menu from "./Menu";
 import Participants from "./Participants";
 import useAppData from "../hooks/useAppData";
+import {
+  ChevronDownIcon,
+  UserCircleIcon,
+  ArrowRightEndOnRectangleIcon,
+  DocumentDuplicateIcon,
+} from "@heroicons/react/24/outline";
+
 
 
 const Party = () => {
@@ -23,6 +30,8 @@ const Party = () => {
   const [videoStatus, setVideoStatus] = useState<Status>(Status.Paused);
   const videoRef = useRef<ReactPlayer>(null);
   const [user, setUser] = useState<string>("");
+  const [displayDropdown, setDisplayDropdown] = useState<boolean>(false);
+
   const { getUser, host, setHost } = useAppData();
   const navigate = useNavigate();
 
@@ -145,6 +154,11 @@ const Party = () => {
     }
   }, [partyID]);
 
+  const handleProfileDropdown = () => {
+    setDisplayDropdown((prevState) => !prevState);
+  };
+
+  
   useEffect(() => {
     socket.on("search", (youtubeID: string) => {
       setYoutubeID(youtubeID);
@@ -194,10 +208,10 @@ const Party = () => {
   }, [youtubeID, partyID, videoRef, videoStatus, user, updateDuration]);
 
   return (
-    <main className="bg-[#272526] text-white h-screen flex flex-col">
+    <main className="bg-gradient-to-r font-['Kanit'] from-[#274060] to-[#1B2845] text-white h-screen  flex flex-col">
       <div className="">
-        <nav className="flex justify-between p-6 text-2xl border-b">
-          <div className="flex px-4 py-2 border rounded-full min-w-[600px]">
+        <nav className="flex justify-between p-6 text-2xl border-b border-b-[#65b5eb]">
+          <div className="flex px-4 py-2 border border-[#65b5eb] rounded-full max-w-[600px] w-[600px]">
             <input
               type="text"
               className="flex-1 p-2 text-sm bg-transparent outline-none cursor-auto"
@@ -210,33 +224,54 @@ const Party = () => {
             </button>
           </div>
 
-          {user ? (
-            <>
-              <div>{user}</div>
-              <button onClick={handleLogout}>Log out</button>
-            </>
-          ) : (
-            <button onClick={() => navigate("/login")}>Login</button>
-          )}
-          <button onClick={handleLeave}>
-            <IoExitOutline size={25} />
-          </button>
+          <div className="flex text-center max-lg:gap-2 lg:gap-6">
+            {user && (
+              <>
+                <div
+                  className="flex cursor-pointer "
+                  onClick={handleProfileDropdown}
+                >
+                  <div className="flex items-center pl-2 lg:gap-2">
+                    <UserCircleIcon className="w-7" />
+                    <div className="text-2xl font-['Kanit'] max-lg:hidden">
+                      {user}
+                    </div>
+                    <ChevronDownIcon className="w-3 max-w-3" />
+                  </div>
+
+                  <div
+                    className={`absolute self-end p-2 text-lg text-center border  rounded-md w-28 bg-[#274060] duration-200 right-12 top-20 border-[#65b5eb] ${
+                      displayDropdown ? "block" : "hidden"
+                    }`}
+                  >
+                    <div className="text-red-500" onClick={handleLogout}>
+                      Sign out
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+            
+            <button onClick={handleLeave}>
+              <ArrowRightEndOnRectangleIcon className="w-6 max-w-6" />
+            </button>
+          </div>
         </nav>
       </div>
-      <div className="flex">
-        <section className="m-2 border rounded-lg w-fit">
+      <div className="flex max-lg:flex-col">
+        <section className="m-2 border lg:max-w-[854px] lg:w-[854px] h-[586px]  border-[#65b5eb] ">
           <ReactPlayer
             url={youtubeID}
             controls={true}
             ref={videoRef}
             onPause={() => pauseVideo()}
             onPlay={() => playVideo()}
-            width={854}
-            height={480}
+            width={"100%"}
+            height={"100%"}
           ></ReactPlayer>
         </section>
 
-        <div className="flex flex-col flex-1">
+        <div className="flex flex-col flex-1 overflow-x-auto break-words">
           <Menu menu={menu} setMenu={setMenu} />
           {menu === "chat" && <Chat />}
           {menu === "participants" && <Participants />}
