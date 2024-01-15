@@ -58,6 +58,8 @@ export const initSocket = (server: HttpServer) => {
     });
 
     socket.on("assign_host", (partyID, newHost) => {
+      console.log(newHost);
+      
       io.to(partyID).emit("assign_host", newHost);
     });
     socket.on("chat", (partyID, message: Message) => {

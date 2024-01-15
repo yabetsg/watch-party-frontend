@@ -34,7 +34,7 @@ const Participants = () => {
     }
   };
 
-  const updatehost = async (token: string, newHost: string) => {
+  const updatehost = async (token: string,partyID:string, newHost: string) => {
     const response = await fetch(`http://localhost:3000/party/${partyID}`, {
       method: "PATCH",
       headers: {
@@ -54,8 +54,8 @@ const Participants = () => {
   const switchHost = (username: string) => {
     const token = localStorage.getItem("token");
 
-    if (username && token) {
-      updatehost(token, username);
+    if (username && token && partyID) {
+      updatehost(token,partyID, username);
     }
   };
   useEffect(() => {
@@ -71,7 +71,7 @@ const Participants = () => {
               key={participant._id}
               className="flex items-center justify-center gap-2 p-2 m-2 hover:bg-[#09618E] hover:transition hover:duration-700 hover:rounded-lg"
             >
-              {user === host && participant.username === user ? (
+              {participant.username === host ? (
                 <span className="p-2 text-2xl text-red-300">
                   {participant.username}
                 </span>

@@ -6,13 +6,13 @@ import { join } from "node:path";
 import { createServer } from "node:http";
 import partyRouter from "./routes/party";
 import userRouter from "./routes/users";
+import { rateLimit } from 'express-rate-limit'
 
-import { Server, Socket } from "socket.io";
 
 import authRouter from "./routes/auth";
 import cookieParser from "cookie-parser";
 import { initSocket } from "./socket";
-import { Message } from "./types";
+
 
 dotenv.config();
 const app = express();
@@ -24,6 +24,14 @@ const corsOptions = {
   credentials: true,
   optionSuccessStatus: 200,
 };
+const limiter = rateLimit({
+	windowMs: 15 * 60 * 1000, // 15 minutes
+	limit: 100, 
+	standardHeaders: 'draft-7',
+	legacyHeaders: false,
+})
+
+app.use(limiter);
 app.use(cors(corsOptions));
 const server = createServer(app);
 const MONGODB_URL = String(process.env.MONGO_URL);

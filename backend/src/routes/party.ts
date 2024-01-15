@@ -1,9 +1,5 @@
 import express from "express";
-import { Request, Response, NextFunction } from "express";
-import Party from "../models/Party";
 import { authorize } from "../middleware/authorize";
-import { CustomRequest } from "../types";
-import User from "../models/User";
 import {
   create_party,
   get_participants,

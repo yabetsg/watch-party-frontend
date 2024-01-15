@@ -104,7 +104,8 @@ const Party = () => {
         //switch host
         const { users } = await getParticipants();
         if (users && users.length > 0) {
-          socket.emit("assign_host", partyID, users[0].username);
+          const newHost = users[0].username;
+          if (token && partyID) updatehost(token, partyID, newHost);
         } else {
           navigate("/");
         }
@@ -151,6 +152,25 @@ const Party = () => {
     }
   }, [partyID]);
 
+  const updatehost = async (
+    token: string,
+    partyID: string,
+    newHost: string
+  ) => {
+    const response = await fetch(`http://localhost:3000/party/${partyID}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ newHost }),
+      credentials: "include",
+    });
+
+    if (response.ok) {
+      socket.emit("assign_host", partyID, newHost);
+    }
+  };
   const handleProfileDropdown = () => {
     setLogoutDropdown((prevState) => !prevState);
   };
@@ -188,15 +208,13 @@ const Party = () => {
         videoRef.current?.getInternalPlayer().playVideo();
       }
     });
-    socket.on("switch_host", async () => {
-      const [users] = await getParticipants();
-      localStorage.setItem("host", users.username);
-      socket.emit("assign_host", partyID, users.username);
-    });
 
     socket.on("assign_host", (newHost) => {
-      setHost(newHost);
-      localStorage.setItem("host", newHost);
+      const token = localStorage.getItem("token");
+      if (token) {
+        setHost(newHost);
+        localStorage.setItem("host", newHost);
+      }
     });
     initializeParty();
   }, [getParticipants, initializeParty, partyID, setHost, updateVideo]);
