@@ -17,7 +17,7 @@ const Menu = ({ menu, setMenu }: MenuProps) => {
           }}
         >
           Chat
-          <ChatBubbleOvalLeftEllipsisIcon className="w-5"/>
+          <ChatBubbleOvalLeftEllipsisIcon className="w-5" />
         </button>
         {menu === "chat" && (
           <div className="w-full h-1 rounded-lg bg-[#09618E]"></div>
@@ -28,12 +28,11 @@ const Menu = ({ menu, setMenu }: MenuProps) => {
         <button
           className="flex gap-2 p-1"
           onClick={() => {
-            console.log("setting to participants");
             setMenu("participants");
           }}
         >
           Participants
-          <UserGroupIcon className="w-5"/>
+          <UserGroupIcon className="w-5" />
         </button>
         {menu === "participants" && (
           <div className="w-full h-1 rounded-lg bg-[#09618E]"></div>

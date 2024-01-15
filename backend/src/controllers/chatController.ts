@@ -12,7 +12,6 @@ export const get_chat = async (req: CustomRequest, res: Response) => {
 
 export const update_chat = async (req: CustomRequest, res: Response) => {
   const { message, partyID } = req.body;
-  console.log(message);
 
   try {
     await Chat.findOneAndUpdate(
@@ -21,7 +20,7 @@ export const update_chat = async (req: CustomRequest, res: Response) => {
     ).exec();
     return res.status(200).json({ msg: "saved chat" });
   } catch (err) {
-    res.status(500).json("sum wrong");
+    res.status(500).json({ msg: "Error updating chat" });
     console.log(err);
   }
 };

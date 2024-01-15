@@ -3,10 +3,7 @@ import JoinPartyModal from "./JoinPartyModal";
 import { useEffect, useState } from "react";
 import { socket } from "../socket";
 import { useNavigate } from "react-router-dom";
-import {
-  ChevronDownIcon,
-  UserCircleIcon,
-} from "@heroicons/react/24/outline";
+import { ChevronDownIcon, UserCircleIcon } from "@heroicons/react/24/outline";
 import { handleLogout } from "../shared";
 import useUserData from "../hooks/useAppData";
 const Home = () => {
@@ -52,12 +49,12 @@ const Home = () => {
   };
 
   const handleProfileDropdown = () => {
-    setDisplayDropdown((prevState)=>!prevState)
+    setDisplayDropdown((prevState) => !prevState);
   };
 
-  const handleDisplayModal = ()=>{
-    setDisplayJoinModal((prevState)=>!prevState)
-  }
+  const handleDisplayModal = () => {
+    setDisplayJoinModal((prevState) => !prevState);
+  };
 
   useEffect(() => {
     checkAuth();
@@ -77,17 +74,23 @@ const Home = () => {
               onClick={handleProfileDropdown}
             >
               <div className="flex items-center pl-2 lg:gap-2">
-                    <UserCircleIcon className="w-7" />
-                    <div className="text-2xl font-['Kanit'] max-sm:hidden">{username}</div>
-                    <ChevronDownIcon className="w-3 max-w-3" />
-                  </div>
+                <UserCircleIcon className="w-7" />
+                <div className="text-2xl font-['Kanit'] max-sm:hidden">
+                  {username}
+                </div>
+                <ChevronDownIcon className="w-3 max-w-3" />
+              </div>
 
-              <div className={`absolute self-end p-2 text-lg text-center border rounded-md w-28 bg-[#274060] duration-200 right-8 top-20 border-[#65b5eb] ${displayDropdown?"opacity-100":"opacity-0"}`}>
-                <div className="text-red-500" onClick={handleLogout}>Sign out</div>
+              <div
+                className={`absolute self-end p-2 text-lg text-center border rounded-md w-28 bg-[#274060] duration-200 right-8 top-20 border-[#65b5eb] ${
+                  displayDropdown ? "opacity-100" : "opacity-0"
+                }`}
+              >
+                <div className="text-red-500" onClick={handleLogout}>
+                  Sign out
+                </div>
               </div>
             </div>
-
-
           </>
         ) : (
           <button onClick={() => navigate("/login")}>Login</button>
@@ -111,7 +114,10 @@ const Home = () => {
               Join Party
             </button>
           </div>
-           <JoinPartyModal display={displayJoinModal} onExit={handleDisplayModal}/>
+          <JoinPartyModal
+            display={displayJoinModal}
+            onExit={handleDisplayModal}
+          />
         </section>
       )}
     </main>

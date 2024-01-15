@@ -5,7 +5,7 @@ import bycrypt from "bcrypt";
 import Jwt from "jsonwebtoken";
 
 export const create_user = [
-  body("username", "First name must not be empty")
+  body("username", "Username must not be empty")
     .trim()
     .isLength({ min: 1 })
     .escape(),
@@ -59,21 +59,25 @@ export const login_user = async (req: Request, res: Response) => {
   try {
     const { username, password } = req.body;
     const user = await User.findOne({ username: username }).exec();
-    
+
     if (!user) {
       return res.status(400).json({ errors: ["user doesn't exist"] });
     } else {
       const encryptedPass = user.password;
       const isValid = await bycrypt.compare(password, encryptedPass);
       if (isValid) {
-        Jwt.sign({ user }, process.env.SECRET_KEY as string, (err:{}|null, token:string | undefined) => {
+        Jwt.sign(
+          { user },
+          process.env.SECRET_KEY as string,
+          (err: {} | null, token: string | undefined) => {
             return res.status(200).json({
               message: "Authentication successful",
               status: "success",
               token,
-              user:user.username
+              user: user.username,
             });
-          });
+          }
+        );
       } else {
         return res.status(400).json({ errors: ["Incorrect password!"] });
       }

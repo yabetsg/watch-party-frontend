@@ -37,11 +37,8 @@ const Chat = () => {
       }
     );
 
-    if (response.ok) {
-      // const data = await response.json()
-      console.log("Saved chat");
-    } else {
-      console.log("error saving chat");
+    if (!response.ok) {
+      console.error("error saving chat");
     }
   };
   const sendChat = async () => {

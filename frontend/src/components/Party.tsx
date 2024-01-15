@@ -104,8 +104,6 @@ const Party = () => {
         //switch host
         const { users } = await getParticipants();
         if (users && users.length > 0) {
-          console.log(users);
-          console.log("switched to " + users[0].username);
           socket.emit("assign_host", partyID, users[0].username);
         } else {
           navigate("/");
@@ -113,7 +111,6 @@ const Party = () => {
       }
       navigate("/");
     } else {
-      //handle error
       console.log("Error leaving party");
     }
   };
@@ -264,7 +261,7 @@ const Party = () => {
                     }`}
                   >
                     <div className="text-green-500" onClick={handleLogout}>
-                      Party id copied to clipboard
+                      Copied party id to clipboard!
                     </div>
                   </div>
                 </div>
@@ -282,8 +279,8 @@ const Party = () => {
           </div>
         </nav>
       </div>
-      <div className="flex max-lg:flex-col">
-        <section className="m-2 border lg:max-w-[854px] lg:w-[854px] h-[586px]  border-[#65b5eb] ">
+      <div className="flex max-xl:flex-col">
+        <section className="m-2 border xl:max-w-[1050px] xl:w-[1050px]  h-[586px]  border-[#65b5eb] ">
           <ReactPlayer
             url={youtubeID}
             controls={true}
@@ -295,7 +292,7 @@ const Party = () => {
           ></ReactPlayer>
         </section>
 
-        <div className="flex flex-col flex-1 overflow-x-auto break-words">
+        <div className="flex flex-col flex-1 bg-[] overflow-x-auto break-words max-xl:bg-gradient-to-r font-['Kanit'] from-[#274060] to-[#1B2845]">
           <Menu menu={menu} setMenu={setMenu} />
           {menu === "chat" && <Chat />}
           {menu === "participants" && <Participants />}

@@ -48,14 +48,11 @@ const Participants = () => {
     if (response.ok) {
       localStorage.setItem("host", newHost);
       socket.emit("assign_host", partyID, newHost);
-      console.log("assigned host");
     }
   };
 
-  const handleHost = (username: string) => {
-    // const username = usernameRef.current?.textContent;
+  const switchHost = (username: string) => {
     const token = localStorage.getItem("token");
-    console.log(username);
 
     if (username && token) {
       updatehost(token, username);
@@ -72,18 +69,25 @@ const Participants = () => {
           return (
             <button
               key={participant._id}
-              className="flex items-center justify-around gap-2 p-2 m-2 hover:bg-[#09618E] hover:transition hover:duration-700 hover:rounded-lg"
+              className="flex items-center justify-center gap-2 p-2 m-2 hover:bg-[#09618E] hover:transition hover:duration-700 hover:rounded-lg"
             >
-              <span className="p-2 text-2xl">{participant.username}</span>
+              {user === host && participant.username === user ? (
+                <span className="p-2 text-2xl text-red-300">
+                  {participant.username}
+                </span>
+              ) : (
+                <span className="p-2 text-2xl">{participant.username}</span>
+              )}
+
               {user === host && participant.username != user && (
                 <div className="flex gap-4">
                   <span
                     className="p-1 bg-green-700 hover:bg-green-800"
-                    onClick={() => handleHost(participant.username)}
+                    onClick={() => switchHost(participant.username)}
                   >
-                    Host
+                    Promote
                   </span>
-                  <span className="p-1 bg-red-700 hover:bg-red-800">Kick</span>
+                  {/* <span className="p-1 bg-red-700 hover:bg-red-800">Kick</span> */}
                 </div>
               )}
             </button>

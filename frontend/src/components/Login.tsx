@@ -7,8 +7,7 @@ const Login = () => {
     username: "",
     password: "",
   });
-
-  // const { setUser } =  useUserData()
+  const [errors, setErrors] = useState([]);
   const navigate = useNavigate();
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
@@ -22,10 +21,10 @@ const Login = () => {
     if (response.ok) {
       const data = await response.json();
       localStorage.setItem("token", data.token);
-
-      // setUser(data.user);
       navigate("/");
     } else {
+      const { errors } = await response.json();
+      setErrors(errors);
       console.log("Error:" + response.status + " " + response.statusText);
     }
   };
@@ -77,6 +76,16 @@ const Login = () => {
           <a href="/signup" className="text-blue-400">
             Sign up
           </a>
+        </div>
+
+        <div>
+          {errors.map((error, i) => {
+            return (
+              <div className="text-center text-red-500" key={i}>
+                {error}
+              </div>
+            );
+          })}
         </div>
       </div>
     </main>

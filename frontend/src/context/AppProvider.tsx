@@ -63,7 +63,6 @@ const AppProvider = ({ children }: { children: ReactNode }) => {
 
     if (response.ok) {
       const data = await response.json();
-      console.log(data);
       setHost(data.party.host);
       localStorage.setItem("host", data.party.host);
     }
