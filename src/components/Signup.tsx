@@ -24,8 +24,7 @@ const Signup = () => {
       navigate("/login");
     } else {
       const { errors } = await response.json();
-      setErrors(errors);
-      console.log(errors);
+      if(errors) setErrors(errors);
     }
   };
   return (

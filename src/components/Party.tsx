@@ -81,8 +81,6 @@ const Party = () => {
   const handleSearch = () => {
     if (user == host) {
       socket.emit("search", partyID, searchInput);
-      console.log(searchInput);
-
       setSearchInput("");
     }
   };

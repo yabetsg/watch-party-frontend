@@ -20,15 +20,11 @@ const Login = () => {
     });
     if (response.ok) {
       const data = await response.json();
-      console.log(data);
-      
       localStorage.setItem("token", data.token);
       navigate("/");
     } else {
       const { errors } = await response.json();
-      console.log(errors);
       if(errors) setErrors(errors);
-      console.log("Error:" + response.status + " " + response.statusText);
     }
   };
   return (
