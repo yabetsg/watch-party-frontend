@@ -25,7 +25,7 @@ const Chat = () => {
     message: Message
   ) => {
     const response = await fetch(
-      `http://localhost:3000/party/${partyID}/chat`,
+      `${import.meta.env.VITE_API}/party/${partyID}/chat`,
       {
         method: "PATCH",
         headers: {
@@ -64,7 +64,7 @@ const Chat = () => {
 
   const initializeChat = async (token: string) => {
     const response = await fetch(
-      `http://localhost:3000/party/${partyID}/chat`,
+      `${import.meta.env.VITE_API}/party/${partyID}/chat`,
       {
         method: "GET",
         headers: {

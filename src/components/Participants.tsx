@@ -15,7 +15,7 @@ const Participants = () => {
     const token = localStorage.getItem("token");
 
     const response = await fetch(
-      `http://localhost:3000/party/${partyID}/users`,
+      `${import.meta.env.VITE_API}/party/${partyID}/users`,
       {
         method: "GET",
         headers: {
@@ -35,7 +35,7 @@ const Participants = () => {
   };
 
   const updatehost = async (token: string,partyID:string, newHost: string) => {
-    const response = await fetch(`http://localhost:3000/party/${partyID}`, {
+    const response = await fetch(`${import.meta.env.VITE_API}/party/${partyID}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",

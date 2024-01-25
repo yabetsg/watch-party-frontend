@@ -17,7 +17,7 @@ const Home = () => {
   const handleCreate = async () => {
     const partyID = generatePartyID();
     const token = localStorage.getItem("token");
-    const response = await fetch(`http://localhost:3000/party/${partyID}`, {
+    const response = await fetch(`${import.meta.env.VITE_API}/party/${partyID}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

@@ -27,7 +27,7 @@ const AppProvider = ({ children }: { children: ReactNode }) => {
   const getUser = async () => {
     const token = localStorage.getItem("token");
     if (token !== "undefined" && token !== null) {
-      const response = await fetch("http://localhost:3000/auth", {
+      const response = await fetch(`${import.meta.env.VITE_API}/auth`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -50,7 +50,7 @@ const AppProvider = ({ children }: { children: ReactNode }) => {
     const partyID = location.pathname.split("/party/")[1];
 
     const response = await fetch(
-      `http://localhost:3000/party/${partyID}/users`,
+      `${import.meta.env.VITE_API}/party/${partyID}/users`,
       {
         method: "GET",
         headers: {

@@ -11,7 +11,7 @@ const Login = () => {
   const navigate = useNavigate();
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
-    const response = await fetch("http://localhost:3000/users/login", {
+    const response = await fetch(`${import.meta.env.VITE_API}/users/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -20,11 +20,14 @@ const Login = () => {
     });
     if (response.ok) {
       const data = await response.json();
+      console.log(data);
+      
       localStorage.setItem("token", data.token);
       navigate("/");
     } else {
       const { errors } = await response.json();
-      setErrors(errors);
+      console.log(errors);
+      if(errors) setErrors(errors);
       console.log("Error:" + response.status + " " + response.statusText);
     }
   };

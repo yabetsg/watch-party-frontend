@@ -21,7 +21,7 @@ const JoinPartyModal = ({
     event.preventDefault();
     const token = localStorage.getItem("token");
     //
-    const response = await fetch(`http://localhost:3000/party/${partyID}`, {
+    const response = await fetch(`${import.meta.env.VITE_API}/party/${partyID}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",

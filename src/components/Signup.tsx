@@ -13,7 +13,7 @@ const Signup = () => {
   const navigate = useNavigate();
   const handleSignUp = async (e: FormEvent) => {
     e.preventDefault();
-    const response = await fetch("http://localhost:3000/users/signup", {
+    const response = await fetch(`${import.meta.env.VITE_API}/users/signup`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

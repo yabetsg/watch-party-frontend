@@ -38,7 +38,7 @@ const Party = () => {
   const initializeParty = useCallback(async () => {
     const token = localStorage.getItem("token");
 
-    const response = await fetch(`http://localhost:3000/party/${partyID}`, {
+    const response = await fetch(`${import.meta.env.VITE_API}/party/${partyID}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -62,7 +62,7 @@ const Party = () => {
   const updateVideo = useCallback(
     async (youtubeID: string) => {
       const token = localStorage.getItem("token");
-      const response = await fetch(`http://localhost:3000/party/${partyID}`, {
+      const response = await fetch(`${import.meta.env.VITE_API}/party/${partyID}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -88,7 +88,7 @@ const Party = () => {
   };
   const handleLeave = async () => {
     const token = localStorage.getItem("token");
-    const response = await fetch(`http://localhost:3000/party/${partyID}`, {
+    const response = await fetch(`${import.meta.env.VITE_API}/party/${partyID}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -137,7 +137,7 @@ const Party = () => {
   const getParticipants = useCallback(async () => {
     const token = localStorage.getItem("token");
     const response = await fetch(
-      `http://localhost:3000/party/${partyID}/users`,
+      `${import.meta.env.VITE_API}/party/${partyID}/users`,
       {
         method: "GET",
         headers: {
@@ -157,7 +157,7 @@ const Party = () => {
     partyID: string,
     newHost: string
   ) => {
-    const response = await fetch(`http://localhost:3000/party/${partyID}`, {
+    const response = await fetch(`${import.meta.env.VITE_API}/party/${partyID}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
